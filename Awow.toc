@@ -1,0 +1,8 @@
+## Interface: 50503
+## Title: Awow
+## Notes: 10x10 matrix monitor for player health and mana (Mists of Pandaria)
+## Version: 1.0
+## Author: jiangziqian
+## SavedVariables: HeroMatrixDB
+
+interface/HeroMatrix_Mists.lua
