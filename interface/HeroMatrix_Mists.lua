@@ -1,3 +1,5 @@
+HeroMatrixDB = HeroMatrixDB or {}
+
 local DB_DEFAULTS = {
     pos = {"TOPLEFT", "UIParent", "TOPLEFT", 20, -120},
     size = 5,
@@ -5,8 +7,6 @@ local DB_DEFAULTS = {
     rows = 10,
     cols = 10,
 }
-
-HeroMatrixDB = HeroMatrixDB or {}
 for k,v in pairs(DB_DEFAULTS) do if HeroMatrixDB[k]==nil then HeroMatrixDB[k]=v end end
 
 local function CreateSquare(parent, size)
@@ -172,18 +172,6 @@ end)
 
 frame:Show()
 
--- Slash command to reset position or show/hide
-SLASH_HEROMATRIX1 = "/hm"
-SlashCmdList["HEROMATRIX"] = function(msg)
-    if msg == "reset" then
-        HeroMatrixDB.pos = DB_DEFAULTS.pos
-        frame:SetPoint(unpack(HeroMatrixDB.pos))
-        print("HeroMatrix: position reset")
-    elseif msg == "hide" then
-        frame:Hide()
-    else
-        print("HeroMatrix show")
-        frame:Show()
-    end
-end
+
+print("HeroMatrix show")
 
