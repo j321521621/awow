@@ -5,6 +5,5 @@
 ## Author: jiangziqian
 ## SavedVariables: HeroMatrixDB
 
-interface/HeroMatrix_Mists.lua
 interface/State.lua
 
