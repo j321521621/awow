@@ -1,4 +1,3 @@
-local addonName = "HeroMatrix_Mists"
 local DB_DEFAULTS = {
     pos = {"TOPLEFT", "UIParent", "TOPLEFT", 20, -120},
     size = 5,

@@ -16,7 +16,8 @@ def capture_screen_to_numpy(region):
 
 def main():
     while True:
-        img = capture_screen_to_numpy({'left': 0, 'top': 0, 'width': 200, 'height': 500})
-        cv2.imwrite('master/screenshots/last.png', img)
+        img = capture_screen_to_numpy({'left': 0, 'top': 0, 'width': 1920, 'height': 1080})
+        cv2.imwrite('screenshots/last.png', img)
+        time.sleep(1)
 
 main()
