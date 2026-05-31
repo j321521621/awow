@@ -1,0 +1,3 @@
+
+
+BagsBar:Hide()

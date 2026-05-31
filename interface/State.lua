@@ -1,5 +1,31 @@
 
 
+local SPELL = {
+    { id = 107428, bar = true },
+    { id = 100780, bar = true },
+    { id = 100784, bar = true },
+}
+local HEALTH = {
+    {id = 'player', bar = nil},
+    {id = 'party1', bar = nil},
+    {id = 'party2', bar = nil},
+    {id = 'party3', bar = nil},
+    {id = 'party4', bar = nil},
+}
+
+
+local ABSORB = {
+    {id = 'player', bar = nil},
+    {id = 'party1', bar = nil},
+    {id = 'party2', bar = nil},
+    {id = 'party3', bar = nil},
+    {id = 'party4', bar = nil},
+}
+
+
+
+    
+
 local function creata_cdbar(frame, left, top, width, height)
 
     -- 创建进度条 (StatusBar)
@@ -33,45 +59,6 @@ local function creata_cdbar(frame, left, top, width, height)
 end
 
 
-
-    -- 注册事件监听技能冷却
--- 创建主框架
-local frame = CreateFrame("Frame", "MySecretCDFrame", UIParent)
-frame:SetSize(200, 30)
-frame:SetPoint("TOPLEFT", 300, 0)
-
-local SPELL = {
-    { id = 107428, bar = true },
-    { id = 100780, bar = true },
-    { id = 100784, bar = true },
-}
-for i, spell in ipairs(SPELL) do
-    print(i, spell.id)
-    spell.bar = creata_cdbar(frame, 0, -10 * (i-1), 200, 10)
-end
-
-local HEALTH = {
-    {id = 'player', bar = nil},
-    {id = 'party1', bar = nil},
-    {id = 'party2', bar = nil},
-    {id = 'party3', bar = nil},
-    {id = 'party4', bar = nil},
-}
-for i, health in ipairs(HEALTH) do
-    health.bar = creata_cdbar(frame, 0, -10 * (i+3), 100, 10)
-end
-
-
-local ABSORB = {
-    {id = 'player', bar = nil},
-    {id = 'party1', bar = nil},
-    {id = 'party2', bar = nil},
-    {id = 'party3', bar = nil},
-    {id = 'party4', bar = nil},
-}
-for i, absorb in ipairs(ABSORB) do
-    absorb.bar = creata_cdbar(frame, 100, -10 * (i+3), 100, 10)
-end
 
 local function UpdateCooldown()
     for i, spell in ipairs(SPELL) do
@@ -117,15 +104,46 @@ local function UpdateAbsorb()
     end
 end
 
-frame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-frame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-frame:RegisterEvent("UNIT_HEALTH")
-frame:RegisterEvent("UNIT_MAXHEALTH")
-frame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
 
-frame:SetScript("OnEvent", function(self, event, ...)
-    UpdateCooldown()
-    UpdateHealth()
-    UpdateAbsorb()
-end)
+
+local function main()
+
+    local frame = CreateFrame("Frame", "Awow", UIParent)
+    frame:SetHeight(40)
+    frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
+    frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", 0, 0)
+    frame:SetFrameStrata("BACKGROUND")
+    frame:SetFrameLevel(0)
+    local background = frame:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints(frame)
+    background:SetColorTexture(0, 0, 0, 1)
+
+    for i, spell in ipairs(SPELL) do
+        print(i, spell.id)
+        spell.bar = creata_cdbar(frame, 0, -10 * (i-1), 200, 10)
+    end
+
+    for i, health in ipairs(HEALTH) do
+        health.bar = creata_cdbar(frame, 0, -10 * (i+3), 100, 10)
+    end
+
+
+    for i, absorb in ipairs(ABSORB) do
+        absorb.bar = creata_cdbar(frame, 100, -10 * (i+3), 100, 10)
+    end
+
+    frame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+    frame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
+    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    frame:RegisterEvent("UNIT_HEALTH")
+    frame:RegisterEvent("UNIT_MAXHEALTH")
+    frame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
+
+    frame:SetScript("OnEvent", function(self, event, ...)
+        UpdateCooldown()
+        UpdateHealth()
+        UpdateAbsorb()
+    end)
+end
+
+main()
