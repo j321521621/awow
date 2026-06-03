@@ -4,17 +4,16 @@ import time
 import os
 from datetime import datetime
 import random
-import ctypes
-ctypes.windll.winmm.timeBeginPeriod(1)
 
 import mss
 import mss.tools
 import numpy as np
 
+
 # 配置参数
-SAVE_FOLDER = "test"  # 保存图片的文件夹
-MAX_IMAGES = 200                  # 最多保留的图片数量
-CAPTURE_INTERVAL = 0.1           # 捕获间隔（秒），可根据需求调整
+SAVE_FOLDER = "capture" 
+MAX_IMAGES = 200  
+INTERVAL = 0.02
 
 class bar:
     def __init__(self, y, left, right):
@@ -55,7 +54,6 @@ def manage_image_count(folder, max_num):
             os.remove(img_path)
 
 def main(now):
-    print(f"❌ {now:8.3f} Capturing screen...")
     if random.random() < 0.1:
         time.sleep(0.2)
         raise Exception("Simulated capture error")
@@ -77,15 +75,16 @@ def loop(interval=50):
         while (now := datetime.now().timestamp() - init_time) < next_time:
             time.sleep(next_time - now + 0.001)
 
+        print(f"▶️ {now:8.3f} Capturing screen...")
         try:
             main(now)
         except Exception as e:
             print(f"❌ {str(e)}")
 
         now = datetime.now().timestamp() - init_time
-        next_time += 1 / interval
+        next_time += INTERVAL
         if next_time  < now:
-            next_time = now + 0.5 / interval
+            next_time = now + INTERVAL / 2
 
 def start():
     threading.Thread(target=loop, daemon=True).start()
