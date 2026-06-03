@@ -39,33 +39,48 @@ def capture(region = None):
         region = region or sct.monitors[0]
         return np.array(sct.grab(region))
 
-def main(now):
+def main():
     img = capture({'left': 0, 'top': 0, 'width': 1000, 'height': 70})
-    hp1 = det_bar(img, 5, 25, 149)
-    hp2 = det_bar(img, 18, 25, 149)
-    hp3 = det_bar(img, 30, 25, 149)
-    hp4 = det_bar(img, 43, 25, 149)
-    hp5 = det_bar(img, 56, 25, 149)
-    print(hp1, hp2, hp3, hp4, hp5)
+    hp = [
+        det_bar(img, 5, 25, 149),
+        det_bar(img, 18, 25, 149),
+        det_bar(img, 30, 25, 149),
+        det_bar(img, 43, 25, 149),
+        det_bar(img, 56, 25, 149),
+    ]
 
-    ab1 = det_bar(img, 5, 152, 213)
-    ab2 = det_bar(img, 18, 152, 213)
-    ab3 = det_bar(img, 30, 152, 213)
-    ab4 = det_bar(img, 43, 152, 213)
-    ab5 = det_bar(img, 56, 152, 213)
+    ab = [
+        det_bar(img, 5, 152, 213),
+        det_bar(img, 18, 152, 213),
+        det_bar(img, 30, 152, 213),
+        det_bar(img, 43, 152, 213),
+        det_bar(img, 56, 152, 213),
+    ]
 
-    hab1 = det_bar(img, 5, 215, 276)
-    hab2 = det_bar(img, 18, 215, 276)
-    hab3 = det_bar(img, 30, 215, 276)
-    hab4 = det_bar(img, 43, 215, 276)
-    hab5 = det_bar(img, 56, 215, 276)
+    hab = [
+        det_bar(img, 5, 215, 276),
+        det_bar(img, 18, 215, 276),
+        det_bar(img, 30, 215, 276),
+        det_bar(img, 43, 215, 276),
+        det_bar(img, 56, 215, 276),
+    ]
 
     ch = det_bar(img, 5, 380, 504)
     gcd = det_bar(img, 5, 506, 630)
     cd1 = det_bar(img, 18, 506, 630)
     cd2 = det_bar(img, 30, 506, 630)
+
+    return {
+        "hp": hp,
+        "ab": ab,
+        "hab": hab,
+        "ch": ch,
+        "gcd": gcd,
+        "cd1": cd1,
+        "cd2": cd2,
+        "img": img,
+    }
     
-    cv2.imwrite(os.path.join(SAVE_FOLDER, f"{now:08.3f}.png"), img)
 
 def clear_dir(folder, max_num = 0):
     images = [f for f in os.listdir(folder)]
@@ -92,17 +107,20 @@ def loop():
 
         #print(f"▶️  Loop executing {now:8.3f}")
         try:
-            ret = main(now)
+            ret = main()
+            ret['tick'] = tick
+            ret['time'] = now
             data.append(ret)
+            cv2.imwrite(os.path.join(SAVE_FOLDER, f"{now:08.3f}.png"), ret ["img"])
         except Exception as e:
             print(f"❌ Exception occurred")
             traceback.print_exc()
 
-        tick += 1
         end = datetime.now().timestamp() - init_time
+        tick += 1
         if tick % 30 == 0:
             clear_dir(SAVE_FOLDER, MAX_IMAGES)
-            print(len(data) / end)
+            print(f"{tick / end:.2f} Hz")
         next_time += INTERVAL
         while next_time  < end:
             next_time = next_time + INTERVAL
