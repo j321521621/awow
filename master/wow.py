@@ -4,87 +4,108 @@ import time
 import os
 from datetime import datetime
 import random
+import ctypes
+ctypes.windll.winmm.timeBeginPeriod(1)
+try:
+    ctypes.windll.user32.SetProcessDpiAwarenessContext(-4)  # PerMonitorV2
+except:
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+import traceback
 
 import mss
 import mss.tools
 import numpy as np
 
-
 # 配置参数
 SAVE_FOLDER = "capture" 
-MAX_IMAGES = 200  
+MAX_IMAGES = 100  
 INTERVAL = 0.02
 
-class bar:
-    def __init__(self, y, left, right):
-        self.y = y
-        self.left = left
-        self.right = right
-    
-    def update(self, img, now):
-        bar = img[self.y, self.left:self.right, 0]
-        img[self.y, self.left:self.right] = [255, 255, 255, 1]
-        return img
 
 def det_bar(img, y, left, right):
-    bar = img[y, left:right, 0]
-    
-    img[y, left:right] = [255, 255, 255, 1]
-    return img
+    r = sum(img[y, left:right, 0] > 10)
+    b = sum(img[y, left:right, 2] > 10)
 
-def capture_screen_to_numpy(region = None):
-    start_time = time.time()
+    if r + b == 0:
+        ret = None
+    else:
+        ret = r / (r + b)
+
+    img[y, left:right] = [255, 255, 255, 255]
+    return ret
+
+def capture(region = None):
     with mss.mss() as sct:
         region = region or sct.monitors[0]
-        img = np.array(sct.grab(region))
-    end_time = time.time()
-    return img
+        return np.array(sct.grab(region))
 
-def manage_image_count(folder, max_num):
-    images = [f for f in os.listdir(folder) if f.endswith((".jpg", ".png", ".jpeg"))]
+def main(now):
+    img = capture({'left': 0, 'top': 0, 'width': 1000, 'height': 70})
+    hp1 = det_bar(img, 5, 25, 149)
+    hp2 = det_bar(img, 18, 25, 149)
+    hp3 = det_bar(img, 30, 25, 149)
+    hp4 = det_bar(img, 43, 25, 149)
+    hp5 = det_bar(img, 56, 25, 149)
+    print(hp1, hp2, hp3, hp4, hp5)
+
+    ab1 = det_bar(img, 5, 152, 213)
+    ab2 = det_bar(img, 18, 152, 213)
+    ab3 = det_bar(img, 30, 152, 213)
+    ab4 = det_bar(img, 43, 152, 213)
+    ab5 = det_bar(img, 56, 152, 213)
+
+    hab1 = det_bar(img, 5, 215, 276)
+    hab2 = det_bar(img, 18, 215, 276)
+    hab3 = det_bar(img, 30, 215, 276)
+    hab4 = det_bar(img, 43, 215, 276)
+    hab5 = det_bar(img, 56, 215, 276)
+
+    ch = det_bar(img, 5, 380, 504)
+    gcd = det_bar(img, 5, 506, 630)
+    cd1 = det_bar(img, 18, 506, 630)
+    cd2 = det_bar(img, 30, 506, 630)
+    
+    cv2.imwrite(os.path.join(SAVE_FOLDER, f"{now:08.3f}.png"), img)
+
+def clear_dir(folder, max_num = 0):
+    images = [f for f in os.listdir(folder)]
     if max_num == 0:
         for img in images:
-            img_path = os.path.join(folder, img)
-            os.remove(img_path)
-        
+            os.remove(os.path.join(folder, img))
     if len(images) > max_num:
         images.sort()
         for img in images[:-max_num]:
-            img_path = os.path.join(folder, img)
-            os.remove(img_path)
+            os.remove(os.path.join(folder, img))
 
-def main(now):
-    if random.random() < 0.1:
-        time.sleep(0.2)
-        raise Exception("Simulated capture error")
-    return
-    img = capture_screen_to_numpy({'left': 300, 'top': 0, 'width': 400, 'height': 200})
-    det_bar(img, 15, 75, 325)
-    img_path = os.path.join(SAVE_FOLDER, now.strftime("%Y%m%d_%H%M%S_%f") + ".jpg")
-    cv2.imwrite(img_path, img)
-    manage_image_count(SAVE_FOLDER, MAX_IMAGES)
-
-def loop(interval=50):
+def loop():
     if not os.path.exists(SAVE_FOLDER):
         os.makedirs(SAVE_FOLDER)
-    manage_image_count(SAVE_FOLDER, 0)
+    clear_dir(SAVE_FOLDER)
 
+    data = []
     init_time = datetime.now().timestamp()
     next_time = 0
+    tick = 0
     while True:
         while (now := datetime.now().timestamp() - init_time) < next_time:
-            time.sleep(next_time - now + 0.001)
+            time.sleep(next_time - now)
 
-        print(f"▶️ {now:8.3f} Capturing screen...")
+        #print(f"▶️  Loop executing {now:8.3f}")
         try:
-            main(now)
+            ret = main(now)
+            data.append(ret)
         except Exception as e:
-            print(f"❌ {str(e)}")
+            print(f"❌ Exception occurred")
+            traceback.print_exc()
 
-        now = datetime.now().timestamp() - init_time
+        tick += 1
+        end = datetime.now().timestamp() - init_time
+        if tick % 30 == 0:
+            clear_dir(SAVE_FOLDER, MAX_IMAGES)
+            print(len(data) / end)
         next_time += INTERVAL
-        if next_time  < now:
-            next_time = now + INTERVAL / 2
+        while next_time  < end:
+            next_time = next_time + INTERVAL
 
 def start():
     threading.Thread(target=loop, daemon=True).start()
