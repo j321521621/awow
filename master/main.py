@@ -11,8 +11,8 @@ import random
 pyautogui.PAUSE = 0  # 取消默认 0.1 秒间隔
 pyautogui.MINIMUM_SLEEP = 0
 
-#import wow
-#wow.start()
+import wow
+wow.start()
 
 
 i = 1

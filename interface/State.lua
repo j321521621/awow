@@ -1,115 +1,153 @@
 
 
 local SPELL = {
-    { id = 107428, bar = true },
-    { id = 100780, bar = true },
-    { id = 100784, bar = true },
-}
-local HEALTH = {
-    {id = 'player', bar = nil},
-    {id = 'party1', bar = nil},
-    {id = 'party2', bar = nil},
-    {id = 'party3', bar = nil},
-    {id = 'party4', bar = nil},
+    { id = 61304, gcd = true, bar = true },
+    { id = 107428, gcd = false, bar = true },
+    { id = 100784, gcd = false, bar = true },
 }
 
+local CHANNEL = {
+    bar = nil,
+}
 
-local ABSORB = {
-    {id = 'player', bar = nil},
-    {id = 'party1', bar = nil},
-    {id = 'party2', bar = nil},
-    {id = 'party3', bar = nil},
-    {id = 'party4', bar = nil},
+local PLAYER = {
+    {id = 'player', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party1', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party2', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party3', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party4', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
 }
 
 
 
-    
+local function create_box(frame, left, top, width, height) 
+    local box = CreateFrame("Frame", "RangeSquareFrame", frame)
+    box:SetSize(width, height)
+    box:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
 
-local function creata_cdbar(frame, left, top, width, height)
+    box.bgtex = box:CreateTexture(nil, "BACKGROUND")
+    box.bgtex:SetAllPoints()
+    box.bgtex:SetColorTexture(1, 1, 1, 1) 
+
+    return box
+end
+
+local function create_bar(frame, left, top, width, height)
 
     -- 创建进度条 (StatusBar)
-    local statusBar = CreateFrame("StatusBar", nil, frame)
-    statusBar:SetSize(width, height)
-    statusBar:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
-    statusBar:SetMinMaxValues(0, 1) -- 内部会自动对应 DurationObject 的 0%-100%
+    local bar = CreateFrame("StatusBar", nil, frame)
+    bar:SetSize(width, height)
+    bar:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
+    bar:SetMinMaxValues(0, 1)
 
-    -- 设置进度条纹理和颜色
-    local texture = statusBar:CreateTexture()
+    local texture = bar:CreateTexture()
     texture:SetAllPoints()
-    texture:SetColorTexture(0, 0, 1, 1) -- 漂亮的蓝色
-    statusBar:SetStatusBarTexture(texture)
+    texture:SetColorTexture(0, 0, 0.5, 1)
+    bar:SetStatusBarTexture(texture)
 
     -- 创建进度条背景
-    local bg = statusBar:CreateTexture(nil, "BACKGROUND")
+    local bg = bar:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
-    bg:SetColorTexture(0, 0, 0, 1)
+    bg:SetColorTexture(0.5, 0, 0, 1)
 
     -- 创建技能图标
     -- local icon = frame:CreateTexture(nil, "ARTWORK")
     -- icon:SetSize(20, 20)
-    -- icon:SetPoint("RIGHT", statusBar, "LEFT", -5, 0)
+    -- icon:SetPoint("RIGHT", bar, "LEFT", -5, 0)
     -- local spellInfo = C_Spell.GetSpellInfo(spellid)
     --if spellInfo then
     --    icon:SetTexture(spellInfo.iconID)
     -- end
 
-    return statusBar
+    return bar
 
+end
+
+local function CanCastHealOnUnit(unit)
+    if UnitExists(unit) 
+       and UnitInPhase(unit)
+       and UnitInRange(unit) 
+       and not UnitIsDeadOrGhost(unit) then
+        return true
+    end
+
+    return false
 end
 
 
 
-local function UpdateCooldown()
+local function UpdateSpell()
     for i, spell in ipairs(SPELL) do
         if spell.bar then
-            local durationObj = C_Spell.GetSpellCooldownDuration(spell.id, true)
+            local durationObj = C_Spell.GetSpellCooldownDuration(spell.id, not spell.gcd)
             spell.bar:SetTimerDuration(durationObj)
         end
     end
 
-    -- local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo("player")
-    -- print( startTime, endTime, spellID)
+    local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo("player")
+    if name then
+        CHANNEL.bar:Show()
+        CHANNEL.bar:SetMinMaxValues(0, endTime / 1000 - startTime / 1000)
+        CHANNEL.bar:SetValue(GetTime() - startTime / 1000)
+    else
+        CHANNEL.bar:Hide()
+    end
 
 end
 
-local function UpdateHealth()
-    for i, health in ipairs(HEALTH) do
-        if UnitExists(health.id) then
-            local currentHealth = UnitHealth(health.id)
-            local maxHealth = UnitHealthMax(health.id)
+local function UpdatePlayer()
+    for i, player in ipairs(PLAYER) do
+        if UnitExists(player.id) then
+            player.role_box:Show()
+            player.stat_box:Show()
+            player.hp_bar:Show()
+            player.ab_bar:Show()
+            player.hab_bar:Show()
 
-            health.bar:SetMinMaxValues(0, maxHealth)
-            health.bar:SetValue(currentHealth)
+            local role = UnitGroupRolesAssigned(player.id)
+            if role == "TANK" then
+                player.role_box.bgtex:SetColorTexture(1, 0, 0, 1)
+            elseif role == "HEALER" then
+                player.role_box.bgtex:SetColorTexture(0, 1, 0, 1)
+            else
+                player.role_box.bgtex:SetColorTexture(0, 0, 1, 1)
+            end
+
+            if UnitIsDeadOrGhost(player.id) then
+                player.stat_box.bgtex:SetColorTexture(1, 0, 0, 1)
+            else
+                player.stat_box.bgtex:SetColorTexture(1, 1, 1, 1)
+            end
+            player.stat_box:SetAlphaFromBoolean(UnitInRange(player.id), 1.0, 0.5)
+            
+            local maxhp = UnitHealthMax(player.id)
+            local hp = UnitHealth(player.id)
+            local ab = UnitGetTotalAbsorbs(player.id)
+            local hab = UnitGetTotalHealAbsorbs(player.id)
+            player.hp_bar:SetMinMaxValues(0, maxhp)
+            player.hp_bar:SetValue(hp)
+            player.ab_bar:SetMinMaxValues(0, maxhp)
+            player.ab_bar:SetValue(ab)
+            player.hab_bar:SetMinMaxValues(0, maxhp)
+            player.hab_bar:SetValue(hab)
+            
         else
-            health.bar:SetMinMaxValues(0, 1)
-            health.bar:SetValue(0)
+            player.role_box:Hide()
+            player.stat_box:Hide()
+            player.hp_bar:Hide()
+            player.ab_bar:Hide()
+            player.hab_bar:Hide()
         end
     end
 end
 
-
-local function UpdateAbsorb()
-    for i, absorb in ipairs(ABSORB) do
-        if UnitExists(absorb.id) then
-            local currentAbsorb = UnitGetTotalAbsorbs(absorb.id)
-            local maxHealth = UnitHealthMax(absorb.id)
-
-            absorb.bar:SetMinMaxValues(0, maxHealth)
-            absorb.bar:SetValue(currentAbsorb)
-        else
-            absorb.bar:SetMinMaxValues(0, 1)
-            absorb.bar:SetValue(0)
-        end
-    end
-end
 
 
 
 local function main()
 
     local frame = CreateFrame("Frame", "Awow", UIParent)
-    frame:SetHeight(40)
+    frame:SetHeight(50)
     frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
     frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", 0, 0)
     frame:SetFrameStrata("BACKGROUND")
@@ -118,32 +156,26 @@ local function main()
     background:SetAllPoints(frame)
     background:SetColorTexture(0, 0, 0, 1)
 
+    for i, player in ipairs(PLAYER) do
+        player.role_box = create_box(frame, 0, -10 * (i-1), 8, 8)
+        player.stat_box = create_box(frame, 10, -10 * (i-1), 8, 8)
+        player.hp_bar = create_bar(frame, 20, -10 * (i-1), 98, 8)
+        player.ab_bar = create_bar(frame, 120, -10 * (i-1), 48, 8)
+        player.hab_bar = create_bar(frame, 170, -10 * (i-1), 48, 8)
+    end
+
+    
+    CHANNEL.bar = create_bar(frame, 300, -10 * (1-1), 98, 8)
+
     for i, spell in ipairs(SPELL) do
-        print(i, spell.id)
-        spell.bar = creata_cdbar(frame, 0, -10 * (i-1), 200, 10)
+        spell.bar = create_bar(frame, 400, -10 * (i-1), 98, 8)
     end
 
-    for i, health in ipairs(HEALTH) do
-        health.bar = creata_cdbar(frame, 0, -10 * (i+3), 100, 10)
-    end
-
-
-    for i, absorb in ipairs(ABSORB) do
-        absorb.bar = creata_cdbar(frame, 100, -10 * (i+3), 100, 10)
-    end
-
-    frame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
-    frame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
-    frame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    frame:RegisterEvent("UNIT_HEALTH")
-    frame:RegisterEvent("UNIT_MAXHEALTH")
-    frame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
-
-    frame:SetScript("OnEvent", function(self, event, ...)
-        UpdateCooldown()
-        UpdateHealth()
-        UpdateAbsorb()
+    frame:SetScript("OnUpdate",function(self, elapsed)
+        UpdateSpell()
+        UpdatePlayer()
     end)
+
 end
 
 main()
