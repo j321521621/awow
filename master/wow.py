@@ -195,16 +195,20 @@ class Log:
         self.time = []
 
     def add(self, d, img):
+        self.write(d)
         tick = d['tick']
         now = d['now']
-        with open(self.dir_log, "ab") as f:
-            pickle.dump(d, f)
         cv2.imwrite(os.path.join(self.dir_cap, f"{now:08.3f}.png"), img)
         self.time.append(now)
         if tick > 0 and tick % 30 == 0:
             self.clean_capture()
             #print(f"{(len(self.time) - 1) / (self.time[-1] - self.time[0]):.2f} Hz")
             self.time = []
+
+    def write(self, d):
+        with open(self.dir_log, "ab") as f:
+            pickle.dump(d, f)
+
         
     def clean_capture(self, max_num = 100):
         fs = [f for f in os.listdir(self.dir_cap)]

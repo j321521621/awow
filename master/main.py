@@ -30,7 +30,7 @@ def on_key_event(e):
         else:
             key = 'num9'
         
-        print(wow.state.now, 'attack', gcd, cd1, cd2, key)
+        wow.log.write([wow.state.now, 'attack', gcd, cd1, cd2, key])
         pyautogui.press(key)
 
     if e.scan_code == 3 and e.event_type == 'down':
@@ -43,7 +43,7 @@ def on_key_event(e):
 
         player = f'num{wow.state.danger+1}'
 
-        print(wow.state.now, 'heal', player, key)
+        wow.log.write([wow.state.now, 'heal', player, key])
         pyautogui.press(player)
         pyautogui.press(key)
 
