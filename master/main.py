@@ -47,9 +47,8 @@ def on_key_event(e):
         pyautogui.press(player)
         pyautogui.press(key)
 
-    if e.name == '3' and e.event_type == 'down':
-        pass
-
+    if e.scan_code == 4 and e.event_type == 'down':
+        pyautogui.press('num6')
 
 
 if __name__ == '__main__':
