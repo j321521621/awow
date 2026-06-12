@@ -85,7 +85,7 @@ local function UpdateSpell()
     end
 
     local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo("player")
-    if name then
+    if spellID == 115175 then
         CHANNEL.bar:Show()
         CHANNEL.bar:SetMinMaxValues(0, endTime / 1000 - startTime / 1000)
         CHANNEL.bar:SetValue(GetTime() - startTime / 1000)

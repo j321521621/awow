@@ -15,32 +15,24 @@ import traceback
 import mss
 import mss.tools
 import numpy as np
+import pickle
 
-# 配置参数
-SAVE_FOLDER = "capture" 
-MAX_IMAGES = 100  
-INTERVAL = 0.02
 
 
 def det_bar(img, y, left, right):
-    r = sum(img[y, left:right, 0] > 10)
-    b = sum(img[y, left:right, 2] > 10)
-
-    if r + b == 0:
-        ret = None
-    else:
-        ret = r / (r + b)
-
+    r = int(sum(img[y, left:right, 0] > 10))
+    b = int(sum(img[y, left:right, 2] > 10))
     img[y, left:right] = [255, 255, 255, 255]
-    return ret
 
-def capture(region = None):
+    if r + b > 0:
+        return r / (r + b)
+    else:
+        return None
+
+def capture():
     with mss.mss() as sct:
-        region = region or sct.monitors[0]
-        return np.array(sct.grab(region))
+        img = np.array(sct.grab({'left': 0, 'top': 0, 'width': 1000, 'height': 70}))
 
-def main():
-    img = capture({'left': 0, 'top': 0, 'width': 1000, 'height': 70})
     hp = [
         det_bar(img, 5, 25, 149),
         det_bar(img, 18, 25, 149),
@@ -78,26 +70,87 @@ def main():
         "gcd": gcd,
         "cd1": cd1,
         "cd2": cd2,
-        "img": img,
-    }
+    }, img
     
+class Log:
+    def __init__(self):
+        self.dir_cap = 'log/capture'
+        if not os.path.exists(self.dir_cap):
+            os.makedirs(self.dir_cap)
+        self.clean_capture(0)
+        self.dir_log = os.path.join('log', datetime.now().strftime("%Y-%m-%d %H_%M_%S"))
+        self.time = []
 
-def clear_dir(folder, max_num = 0):
-    images = [f for f in os.listdir(folder)]
-    if max_num == 0:
-        for img in images:
-            os.remove(os.path.join(folder, img))
-    if len(images) > max_num:
-        images.sort()
-        for img in images[:-max_num]:
-            os.remove(os.path.join(folder, img))
+    def add(self, d, img):
+        tick = d['tick']
+        now = d['now']
+        with open(self.dir_log, "ab") as f:
+            pickle.dump(d, f)
+        cv2.imwrite(os.path.join(self.dir_cap, f"{now:08.3f}.png"), img)
+        self.time.append(now)
+        if tick > 0 and tick % 30 == 0:
+            self.clean_capture()
+            print(f"{(len(self.time) - 1) / (self.time[-1] - self.time[0]):.2f} Hz")
+            self.time = []
+        
+    def clean_capture(self, max_num = 100):
+        fs = [f for f in os.listdir(self.dir_cap)]
+        fs.sort()
+        while len(fs) > max_num:
+            os.remove(os.path.join(self.dir_cap, fs.pop(0)))
 
-def loop():
-    if not os.path.exists(SAVE_FOLDER):
-        os.makedirs(SAVE_FOLDER)
-    clear_dir(SAVE_FOLDER)
+class State():
+    def __init__(self):
+        self.data = []
 
-    data = []
+        self.gcd = 0
+        self.cd1 = 0
+        self.cd2 = 0
+
+    def add(self, d):
+        self.data.append(d)
+        self.now = d['now']
+        self.gcd = self.guess_cd('gcd', 1.5)
+        self.cd1 = self.guess_cd('cd1', 12)
+        self.cd2 = self.guess_cd('cd2', 3)
+
+        while self.data and self.data[0]['now'] <  self.now - 1:
+            self.data.pop(0)
+
+    def guess_cd(self, k, default):
+        if self.data[-1][k] == 1:
+            return 0
+
+
+        for d in self.data[::-1]:
+            if d['now'] >  self.now - 0.2 and d[k] == 0:
+                return 0
+
+        ds = [self.data[-1]]
+        for d in self.data[-2::-1]:
+            if ds[-1][k] >= d[k] and d[k] > 0:
+                ds.append(d)
+            else:
+                break
+
+        t0 = ds[-1]['now']
+        t1 = ds[0]['now']
+        d0 = ds[-1][k]
+        d1 = ds[0][k]
+
+        if d1 - d0 < 0.05:
+            return (1 - d1) * default
+
+        return (1 - d1) * (t1 - t0) / (d1 - d0)
+ 
+ 
+log = Log()
+state = State()
+
+def loop(interval = 0.01):
+    global log
+    global state
+    
     init_time = datetime.now().timestamp()
     next_time = 0
     tick = 0
@@ -107,23 +160,19 @@ def loop():
 
         #print(f"▶️  Loop executing {now:8.3f}")
         try:
-            ret = main()
-            ret['tick'] = tick
-            ret['time'] = now
-            data.append(ret)
-            cv2.imwrite(os.path.join(SAVE_FOLDER, f"{now:08.3f}.png"), ret ["img"])
+            d, img = capture()
+            d['tick'] = tick
+            d['now'] = now
+            log.add(d, img)
+            state.add(d)
         except Exception as e:
             print(f"❌ Exception occurred")
             traceback.print_exc()
 
-        end = datetime.now().timestamp() - init_time
         tick += 1
-        if tick % 30 == 0:
-            clear_dir(SAVE_FOLDER, MAX_IMAGES)
-            print(f"{tick / end:.2f} Hz")
-        next_time += INTERVAL
-        while next_time  < end:
-            next_time = next_time + INTERVAL
+        end_time = datetime.now().timestamp() - init_time
+        while interval > 0 and next_time  < end_time:
+            next_time = next_time + interval
 
 def start():
     threading.Thread(target=loop, daemon=True).start()
