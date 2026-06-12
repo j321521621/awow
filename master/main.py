@@ -15,6 +15,8 @@ import wow
 
 
 def on_key_event(e):
+    if keyboard.is_pressed('alt'):
+        return
     #print(f"{wow.state.now}: {e.scan_code}")
     if e.scan_code == 2 and e.event_type == 'down':
         gcd = wow.state.gcd
