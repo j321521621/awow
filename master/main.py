@@ -15,8 +15,8 @@ import wow
 
 
 def on_key_event(e):
-    #print(f"{wow.state.now}: {e.name} {e.event_type}")
-    if e.name == '1' and e.event_type == 'down':
+    #print(f"{wow.state.now}: {e.scan_code}")
+    if e.scan_code == 2 and e.event_type == 'down':
         gcd = wow.state.gcd
         cd1 = wow.state.cd1
         cd2 = wow.state.cd2
@@ -28,13 +28,26 @@ def on_key_event(e):
         else:
             key = 'num9'
         
-        print('cd:', gcd, cd1, cd2, key)
+        print(wow.state.now, 'attack', gcd, cd1, cd2, key)
         pyautogui.press(key)
 
-    #if e.scan_code == 2 and e.event_type == 'down':
-    #    print(i%5+1)
-    #    pyautogui.press('num'+str(i%5+1))
-    #    pyautogui.press('num6')
+    if e.scan_code == 3 and e.event_type == 'down':
+        if wow.state.buff1:
+            key = 'add'
+        elif wow.state.ch is None or wow.state.ch > 0.95:
+            key = 'num0'
+        else:
+            key = 'add'
+
+        player = f'num{wow.state.danger+1}'
+
+        print(wow.state.now, 'heal', player, key)
+        pyautogui.press(player)
+        pyautogui.press(key)
+
+    if e.name == '3' and e.event_type == 'down':
+        pass
+
 
 
 if __name__ == '__main__':

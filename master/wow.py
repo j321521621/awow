@@ -18,6 +18,15 @@ import numpy as np
 import pickle
 
 
+def minv(data):
+    v = min(data)
+    n = data.index(v)
+    return n, v
+
+def maxv(data):
+    v = max(data)
+    n = data.index(v)
+    return n, v
 
 def det_bar(img, y, left, right):
     r = int(sum(img[y, left:right, 0] > 10))
@@ -28,6 +37,12 @@ def det_bar(img, y, left, right):
         return r / (r + b)
     else:
         return None
+
+def det_box(img, top, bottom, left, right):
+    ret = list(np.mean(img[top: bottom, left:right, :], axis=(0, 1)))[:3]
+    img[top: bottom, left:right] = [255, 255, 255, 255]
+    return ret
+
 
 def capture():
     with mss.mss() as sct:
@@ -57,62 +72,60 @@ def capture():
         det_bar(img, 56, 215, 276),
     ]
 
+    job = [
+        np.argmax(det_box(img, 4, 7, 4, 7)),
+        np.argmax(det_box(img, 17, 20, 4, 7)),
+        np.argmax(det_box(img, 29, 32, 4, 7)),
+        np.argmax(det_box(img, 42, 45, 4, 7)),
+        np.argmax(det_box(img, 55, 58, 4, 7)),
+    ]
+
+    dis = [
+        sum(det_box(img, 4, 7, 17, 20)) > 750,
+        sum(det_box(img, 17, 20, 17, 20)) > 750,
+        sum(det_box(img, 29, 32, 17, 20)) > 750,
+        sum(det_box(img, 42, 45, 17, 20)) > 750,
+        sum(det_box(img, 55, 58, 17, 20)) > 750,
+    ]
+
     ch = det_bar(img, 5, 380, 504)
     gcd = det_bar(img, 5, 506, 630)
     cd1 = det_bar(img, 18, 506, 630)
     cd2 = det_bar(img, 30, 506, 630)
 
+    buff1 = sum(det_box(img, 29, 32, 700, 703)) > 10
+
     return {
+        "job" : job,
+        "dis" : dis,
         "hp": hp,
         "ab": ab,
         "hab": hab,
         "ch": ch,
+        "buff1" : buff1,
+
         "gcd": gcd,
         "cd1": cd1,
         "cd2": cd2,
     }, img
     
-class Log:
-    def __init__(self):
-        self.dir_cap = 'log/capture'
-        if not os.path.exists(self.dir_cap):
-            os.makedirs(self.dir_cap)
-        self.clean_capture(0)
-        self.dir_log = os.path.join('log', datetime.now().strftime("%Y-%m-%d %H_%M_%S"))
-        self.time = []
-
-    def add(self, d, img):
-        tick = d['tick']
-        now = d['now']
-        with open(self.dir_log, "ab") as f:
-            pickle.dump(d, f)
-        cv2.imwrite(os.path.join(self.dir_cap, f"{now:08.3f}.png"), img)
-        self.time.append(now)
-        if tick > 0 and tick % 30 == 0:
-            self.clean_capture()
-            print(f"{(len(self.time) - 1) / (self.time[-1] - self.time[0]):.2f} Hz")
-            self.time = []
-        
-    def clean_capture(self, max_num = 100):
-        fs = [f for f in os.listdir(self.dir_cap)]
-        fs.sort()
-        while len(fs) > max_num:
-            os.remove(os.path.join(self.dir_cap, fs.pop(0)))
 
 class State():
     def __init__(self):
         self.data = []
 
-        self.gcd = 0
-        self.cd1 = 0
-        self.cd2 = 0
-
     def add(self, d):
         self.data.append(d)
+
         self.now = d['now']
         self.gcd = self.guess_cd('gcd', 1.5)
         self.cd1 = self.guess_cd('cd1', 12)
         self.cd2 = self.guess_cd('cd2', 3)
+
+        self.ch = d['ch']
+        self.buff1 = d['buff1']
+        self.danger = self.guess_danger()
+
 
         while self.data and self.data[0]['now'] <  self.now - 1:
             self.data.pop(0)
@@ -120,7 +133,6 @@ class State():
     def guess_cd(self, k, default):
         if self.data[-1][k] == 1:
             return 0
-
 
         for d in self.data[::-1]:
             if d['now'] >  self.now - 0.2 and d[k] == 0:
@@ -142,15 +154,71 @@ class State():
             return (1 - d1) * default
 
         return (1 - d1) * (t1 - t0) / (d1 - d0)
- 
- 
+    
+    def guess_danger(self):
+        d = self.data[-1]
+        tank_id = None
+        other_id = []
+        for i in range(5):
+            if d['dis'][i]:
+                if d['job'][i] == 2:
+                    tank_id = i
+                else:
+                    other_id.append(i)
+
+        if other_id:
+            n, v = minv([d['hp'][i] + d['ab'][i] for i in other_id])
+            if v < 0.95:
+                return other_id[n]
+
+            n, v = minv([d['hp'][i] for i in other_id])
+            if v < 0.95:
+                return other_id[n]
+            
+            n, v = maxv([d['hab'][i] for i in other_id])
+            if v > 0.05:
+                return other_id[n]
+        
+        if tank_id is not None:
+            if d['hab'][tank_id] > 0.05:
+                return tank_id
+
+        return 0
+
+class Log:
+    def __init__(self):
+        self.dir_cap = 'log/capture'
+        if not os.path.exists(self.dir_cap):
+            os.makedirs(self.dir_cap)
+        self.clean_capture(0)
+        self.dir_log = os.path.join('log', datetime.now().strftime("%Y-%m-%d %H_%M_%S"))
+        self.time = []
+
+    def add(self, d, img):
+        tick = d['tick']
+        now = d['now']
+        with open(self.dir_log, "ab") as f:
+            pickle.dump(d, f)
+        cv2.imwrite(os.path.join(self.dir_cap, f"{now:08.3f}.png"), img)
+        self.time.append(now)
+        if tick > 0 and tick % 30 == 0:
+            self.clean_capture()
+            #print(f"{(len(self.time) - 1) / (self.time[-1] - self.time[0]):.2f} Hz")
+            self.time = []
+        
+    def clean_capture(self, max_num = 100):
+        fs = [f for f in os.listdir(self.dir_cap)]
+        fs.sort()
+        while len(fs) > max_num:
+            os.remove(os.path.join(self.dir_cap, fs.pop(0)))
+
 log = Log()
 state = State()
 
 def loop(interval = 0.01):
     global log
     global state
-    
+
     init_time = datetime.now().timestamp()
     next_time = 0
     tick = 0
