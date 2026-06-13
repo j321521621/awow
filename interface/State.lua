@@ -34,7 +34,6 @@ end
 
 local function create_bar(frame, left, top, width, height)
 
-    -- 创建进度条 (StatusBar)
     local bar = CreateFrame("StatusBar", nil, frame)
     bar:SetSize(width, height)
     bar:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
@@ -45,19 +44,9 @@ local function create_bar(frame, left, top, width, height)
     texture:SetColorTexture(0, 0, 0.5, 1)
     bar:SetStatusBarTexture(texture)
 
-    -- 创建进度条背景
     local bg = bar:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetColorTexture(0.5, 0, 0, 1)
-
-    -- 创建技能图标
-    -- local icon = frame:CreateTexture(nil, "ARTWORK")
-    -- icon:SetSize(20, 20)
-    -- icon:SetPoint("RIGHT", bar, "LEFT", -5, 0)
-    -- local spellInfo = C_Spell.GetSpellInfo(spellid)
-    --if spellInfo then
-    --    icon:SetTexture(spellInfo.iconID)
-    -- end
 
     return bar
 

@@ -183,6 +183,9 @@ class State():
             if d['hab'][tank_id] > 0.05:
                 return tank_id
 
+            if d['hp'][tank_id] < 0.5:
+                return tank_id
+
         return 0
 
 class Log:
