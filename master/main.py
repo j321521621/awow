@@ -13,12 +13,13 @@ import pyautogui
 pyautogui.PAUSE = 0  # 取消默认 0.1 秒间隔
 pyautogui.MINIMUM_SLEEP = 0
 
-import wow
+from wow import wow
+from log import log
 
 def on_1():
-    gcd = wow.state.gcd
-    cd1 = wow.state.cd1
-    cd2 = wow.state.cd2
+    gcd = wow.gcd
+    cd1 = wow.cd1
+    cd2 = wow.cd2
 
     if cd1 - gcd < 0.5:
         key = 'num7'
@@ -27,20 +28,20 @@ def on_1():
     else:
         key = 'num9'
     
-    wow.log.write([wow.state.now, 'attack', gcd, cd1, cd2, key])
+    log.write_data([wow.now, 'attack', gcd, cd1, cd2, key])
     pyautogui.press(key)
 
 def on_2():
-    if wow.state.buff1:
+    if wow.buff1:
         key = 'add'
-    elif wow.state.ch is None or wow.state.ch > 0.95:
+    elif wow.ch is None or wow.ch > 0.95:
         key = 'num0'
     else:
         key = 'add'
 
-    player = f'num{wow.state.danger+1}'
+    player = f'num{wow.danger+1}'
 
-    wow.log.write([wow.state.now, 'heal', player, key])
+    log.write_data([wow.now, 'heal', player, key])
     pyautogui.press(player)
     pyautogui.press(key)
 
@@ -53,7 +54,7 @@ lock = threading.Lock()
 def loop():
     while True:
         with lock:
-            #print(f"{wow.state.now:0.2f}")
+            #print(f"{wow.now:0.2f}")
             try:
                 if keyboard.is_pressed('alt'):
                     pass
@@ -93,7 +94,7 @@ def onkey(event):
     if keyboard.is_pressed('alt'):
         return
     with lock:
-        #print(f"{wow.state.now:0.2f} {event.scan_code} {event.event_type}")
+        #print(f"{wow.now:0.2f} {event.scan_code} {event.event_type}")
         if event.scan_code == 2 and event.event_type == 'down':
             on_1()
         elif event.scan_code == 3 and event.event_type == 'down':

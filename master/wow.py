@@ -18,6 +18,9 @@ import numpy as np
 import pickle
 
 
+from log import log
+
+
 def minv(data):
     v = min(data)
     n = data.index(v)
@@ -110,7 +113,7 @@ def capture():
     }, img
     
 
-class State():
+class Wow():
     def __init__(self):
         self.data = []
 
@@ -125,7 +128,6 @@ class State():
         self.ch = d['ch']
         self.buff1 = d['buff1']
         self.danger = self.guess_danger()
-
 
         while self.data and self.data[0]['now'] <  self.now - 1:
             self.data.pop(0)
@@ -188,69 +190,35 @@ class State():
 
         return 0
 
-class Log:
-    def __init__(self):
-        self.dir_cap = 'log/capture'
-        if not os.path.exists(self.dir_cap):
-            os.makedirs(self.dir_cap)
-        self.clean_capture(0)
-        self.dir_log = os.path.join('log', datetime.now().strftime("%Y-%m-%d %H_%M_%S"))
-        self.time = []
 
-    def add(self, d, img):
-        self.write(d)
-        tick = d['tick']
-        now = d['now']
-        cv2.imwrite(os.path.join(self.dir_cap, f"{now:08.3f}.png"), img)
-        self.time.append(now)
-        if tick > 0 and tick % 30 == 0:
-            self.clean_capture()
-            #print(f"{(len(self.time) - 1) / (self.time[-1] - self.time[0]):.2f} Hz")
-            self.time = []
+    def loop(self, interval = 0.01):
+        init_time = datetime.now().timestamp()
+        next_time = 0
+        tick = 0
+        while True:
+            while (now := datetime.now().timestamp() - init_time) < next_time:
+                time.sleep(next_time - now)
+            try:
+                d, img = capture()
+                d['tick'] = tick
+                d['now'] = now
+                log.write_img(img)
+                log.write_data(d)
+                self.add(d)
+            except Exception as e:
+                print(f"❌ Exception occurred")
+                traceback.print_exc()
+            tick += 1
+            end_time = datetime.now().timestamp() - init_time
+            while interval > 0 and next_time  < end_time:
+                next_time = next_time + interval
 
-    def write(self, d):
-        with open(self.dir_log, "ab") as f:
-            pickle.dump(d, f)
+    def start(self):
+        threading.Thread(target=self.loop, daemon=True).start()
 
-        
-    def clean_capture(self, max_num = 100):
-        fs = [f for f in os.listdir(self.dir_cap)]
-        fs.sort()
-        while len(fs) > max_num:
-            os.remove(os.path.join(self.dir_cap, fs.pop(0)))
+wow = Wow()
 
-log = Log()
-state = State()
 
-def loop(interval = 0.01):
-    global log
-    global state
-
-    init_time = datetime.now().timestamp()
-    next_time = 0
-    tick = 0
-    while True:
-        while (now := datetime.now().timestamp() - init_time) < next_time:
-            time.sleep(next_time - now)
-
-        #print(f"▶️  Loop executing {now:8.3f}")
-        try:
-            d, img = capture()
-            d['tick'] = tick
-            d['now'] = now
-            log.add(d, img)
-            state.add(d)
-        except Exception as e:
-            print(f"❌ Exception occurred")
-            traceback.print_exc()
-
-        tick += 1
-        end_time = datetime.now().timestamp() - init_time
-        while interval > 0 and next_time  < end_time:
-            next_time = next_time + interval
-
-def start():
-    threading.Thread(target=loop, daemon=True).start()
 
 if __name__ == "__main__":
-    loop()
+    wow.loop()
