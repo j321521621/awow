@@ -96,7 +96,7 @@ def capture():
     cd1 = det_bar(img, 18, 506, 630)
     cd2 = det_bar(img, 30, 506, 630)
 
-    buff1 = sum(det_box(img, 29, 32, 700, 703)) > 10
+    buff1 = sum(det_box(img, 14, 16, 640, 642)) > 10
 
     return {
         "job" : job,

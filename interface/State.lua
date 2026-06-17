@@ -1,9 +1,9 @@
 
 
 local SPELL = {
-    { id = 61304, gcd = true, bar = true },
-    { id = 107428, gcd = false, bar = true },
-    { id = 100784, gcd = false, bar = true },
+    { id = 61304, gcd = true, bar = nil },
+    { id = 107428, gcd = false, bar = nil },
+    { id = 100784, gcd = false, bar = nil },
 }
 
 local CHANNEL = {
@@ -11,14 +11,41 @@ local CHANNEL = {
 }
 
 local PLAYER = {
-    {id = 'player', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
-    {id = 'party1', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
-    {id = 'party2', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
-    {id = 'party3', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
-    {id = 'party4', role_box = nil, stat_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'player', role_box = nil, state_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party1', role_box = nil, state_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party2', role_box = nil, state_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party3', role_box = nil, state_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
+    {id = 'party4', role_box = nil, state_box = nil, hp_bar = nil, ab_bar = nil, hab_bar = nil},
 }
 
+local BUFF = {
+    box = nil,
+    time = nil,
+}
 
+local function MakeButtonGlow(button)
+    if not button then return end
+    
+    if not button.myCustomGlow then
+        button.myCustomGlow = CreateFrame("Frame", nil, button)
+        button.myCustomGlow:SetAllPoints(button)
+        
+        local glowTexture = button.myCustomGlow:CreateTexture(nil, "OVERLAY")
+        glowTexture:SetTexture("Interface\\SpellActivationOverlay\\IconAlert")
+        glowTexture:SetTexCoord(0.00781250, 0.50781250, 0.27734375, 0.52734375)
+        
+        glowTexture:SetPoint("TOPLEFT", button, "TOPLEFT", -14, 14)
+        glowTexture:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 14, -14)
+    end
+    
+    button.myCustomGlow:Show()
+end
+
+local function StopButtonGlow(button)
+    if button and button.myCustomGlow then
+        button.myCustomGlow:Hide()
+    end
+end
 
 local function create_box(frame, left, top, width, height) 
     local box = CreateFrame("Frame", "RangeSquareFrame", frame)
@@ -52,18 +79,6 @@ local function create_bar(frame, left, top, width, height)
 
 end
 
-local function CanCastHealOnUnit(unit)
-    if UnitExists(unit) 
-       and UnitInPhase(unit)
-       and UnitInRange(unit) 
-       and not UnitIsDeadOrGhost(unit) then
-        return true
-    end
-
-    return false
-end
-
-
 
 local function UpdateSpell()
     for i, spell in ipairs(SPELL) do
@@ -82,19 +97,29 @@ local function UpdateSpell()
         CHANNEL.bar:Hide()
     end
 
+    if BUFF.time ~= nil and GetTime() < BUFF.time + 20 then
+        BUFF.box.bgtex:SetColorTexture(1, 1, 1, 1)
+        MakeButtonGlow(_G["MultiBarBottomLeftButton10"])
+    else
+        BUFF.box.bgtex:SetColorTexture(0, 0, 0, 1)
+        StopButtonGlow(_G["MultiBarBottomLeftButton10"])
+    end
+
 end
 
 local function UpdatePlayer()
     for i, player in ipairs(PLAYER) do
         if UnitExists(player.id) then
             player.role_box:Show()
-            player.stat_box:Show()
+            player.state_box:Show()
             player.hp_bar:Show()
             player.ab_bar:Show()
             player.hab_bar:Show()
 
             local role = UnitGroupRolesAssigned(player.id)
-            if role == "TANK" then
+            if i == 1 then
+                player.role_box.bgtex:SetColorTexture(0, 1, 0, 1)
+            elseif role == "TANK" then
                 player.role_box.bgtex:SetColorTexture(1, 0, 0, 1)
             elseif role == "HEALER" then
                 player.role_box.bgtex:SetColorTexture(0, 1, 0, 1)
@@ -103,11 +128,16 @@ local function UpdatePlayer()
             end
 
             if UnitIsDeadOrGhost(player.id) then
-                player.stat_box.bgtex:SetColorTexture(1, 0, 0, 1)
+                player.state_box.bgtex:SetColorTexture(1, 0, 0, 1)
             else
-                player.stat_box.bgtex:SetColorTexture(1, 1, 1, 1)
+                player.state_box.bgtex:SetColorTexture(1, 1, 1, 1)
             end
-            player.stat_box:SetAlphaFromBoolean(UnitInRange(player.id), 1.0, 0.5)
+
+            if i == 1 then
+                player.state_box:SetAlpha(1.0)
+            else
+                player.state_box:SetAlphaFromBoolean(UnitInRange(player.id), 1.0, 0.5)
+            end
             
             local maxhp = UnitHealthMax(player.id)
             local hp = UnitHealth(player.id)
@@ -122,7 +152,7 @@ local function UpdatePlayer()
             
         else
             player.role_box:Hide()
-            player.stat_box:Hide()
+            player.state_box:Hide()
             player.hp_bar:Hide()
             player.ab_bar:Hide()
             player.hab_bar:Hide()
@@ -130,8 +160,15 @@ local function UpdatePlayer()
     end
 end
 
-
-
+local function OnSpell(self, event, unitTarget, castGUID, spellID)
+    if unitTarget == "player" then
+        if spellID == 107428 then
+            BUFF.time = GetTime()
+        elseif spellID == 399491 then
+            BUFF.time = nil
+        end
+    end
+end
 
 local function main()
 
@@ -147,7 +184,7 @@ local function main()
 
     for i, player in ipairs(PLAYER) do
         player.role_box = create_box(frame, 0, -10 * (i-1), 8, 8)
-        player.stat_box = create_box(frame, 10, -10 * (i-1), 8, 8)
+        player.state_box = create_box(frame, 10, -10 * (i-1), 8, 8)
         player.hp_bar = create_bar(frame, 20, -10 * (i-1), 98, 8)
         player.ab_bar = create_bar(frame, 120, -10 * (i-1), 48, 8)
         player.hab_bar = create_bar(frame, 170, -10 * (i-1), 48, 8)
@@ -155,15 +192,18 @@ local function main()
 
     
     CHANNEL.bar = create_bar(frame, 300, -10 * (1-1), 98, 8)
-
     for i, spell in ipairs(SPELL) do
         spell.bar = create_bar(frame, 400, -10 * (i-1), 98, 8)
     end
+    BUFF.box = create_box(frame, 500, 0, 20, 20)
 
     frame:SetScript("OnUpdate",function(self, elapsed)
         UpdateSpell()
         UpdatePlayer()
     end)
+
+    frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+    frame:SetScript("OnEvent", OnSpell)
 
 end
 
