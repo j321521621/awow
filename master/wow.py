@@ -104,9 +104,9 @@ def capture():
         "hp": hp,
         "ab": ab,
         "hab": hab,
+
         "ch": ch,
         "buff1" : buff1,
-
         "gcd": gcd,
         "cd1": cd1,
         "cd2": cd2,
