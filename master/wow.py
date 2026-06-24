@@ -118,6 +118,8 @@ class Wow():
         self.data = []
 
     def add(self, d):
+        if d['gcd'] is None or d['cd1'] is None or d['cd2'] is None:
+            return
         self.data.append(d)
 
         self.now = d['now']
@@ -185,10 +187,10 @@ class Wow():
             if d['hab'][tank_id] > 0.05:
                 return tank_id
 
-            if d['hp'][tank_id] < 0.5:
+            if d['hp'][tank_id] < 0.6:
                 return tank_id
 
-        return 0
+        return None
 
 
     def loop(self, interval = 0.01):

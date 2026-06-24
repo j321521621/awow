@@ -82,9 +82,14 @@ class Main:
         elif wow.ch is None or wow.ch > 0.95:
             key = 'num0'
         else:
+            if wow.danger is None:
+                return
             key = 'add'
 
-        player = f'num{wow.danger+1}'
+        if wow.danger is None:
+            player = f'num1'
+        else:
+            player = f'num{wow.danger+1}'
 
         log.write_data([wow.now, 'heal', player, key])
         pyautogui.press(player)
@@ -95,6 +100,8 @@ class Main:
             
     def loop(self):
         while True:
+            if self.enable == False:
+                continue
             with self.lock:
                 #print(f"{wow.now:0.2f}")
                 try:
