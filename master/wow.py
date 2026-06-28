@@ -172,22 +172,30 @@ class Wow():
 
         if other_id:
             n, v = minv([d['hp'][i] + d['ab'][i] for i in other_id])
-            if v < 0.95:
+            if v < 0.6:
                 return other_id[n]
 
             n, v = minv([d['hp'][i] for i in other_id])
-            if v < 0.95:
+            if v < 0.6:
                 return other_id[n]
             
             n, v = maxv([d['hab'][i] for i in other_id])
             if v > 0.05:
                 return other_id[n]
+
+            n, v = minv([d['hp'][i] + d['ab'][i] for i in other_id])
+            if v < 0.9:
+                return other_id[n]
+
+            n, v = minv([d['hp'][i] for i in other_id])
+            if v < 0.9:
+                return other_id[n]
         
         if tank_id is not None:
-            if d['hab'][tank_id] > 0.05:
-                return tank_id
-
             if d['hp'][tank_id] < 0.6:
+                return tank_id
+                
+            if d['hab'][tank_id] > 0.05:
                 return tank_id
 
         return None
