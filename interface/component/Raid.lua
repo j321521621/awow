@@ -4,9 +4,10 @@ local addonName, NS = ...
 local Raid = {}
 Raid.__index = Raid
 
-function Raid:New(frame, left, top, hotids)
+function Raid:New(parent, left, top, hotids)
     local self = setmetatable({}, Raid)
 
+    self.frame = NS.create_frame(parent, left, top, 80 * 6, 8 * 5)
     self.unit = {}
     for i = 1, 30 do
         local row = (i - 1) % 5
@@ -16,15 +17,15 @@ function Raid:New(frame, left, top, hotids)
 
         self.unit[i] = {
             id = "raid" .. i,
-            role_box = NS.create_box(frame, baseLeft + 0, baseTop, 5, 5),
-            state_box = NS.create_box(frame, baseLeft + 8, baseTop, 5, 5),
-            hp_bar = NS.create_bar(frame, baseLeft + 16, baseTop, 36, 5),
+            role_box = NS.create_box(self.frame, baseLeft + 0, baseTop, 5, 5),
+            state_box = NS.create_box(self.frame, baseLeft + 8, baseTop, 5, 5),
+            hp_bar = NS.create_bar(self.frame, baseLeft + 16, baseTop, 36, 5),
             hot_box = {},
         }
 
         for j, hotid in ipairs(hotids) do
             self.unit[i].hot_box[j] =
-            NS.create_hot(frame, baseLeft + 56 + (j - 1) * 5, baseTop, 5, 5, self.unit[i].id, hotid)
+            NS.create_hot(self.frame, baseLeft + 56 + (j - 1) * 5, baseTop, 5, 5, self.unit[i].id, hotid)
         end
     end
 
@@ -44,11 +45,11 @@ function Raid:Update()
             local c = select(3, UnitClass(unit.id))/20
             local role = UnitGroupRolesAssigned(unit.id)
             if role == "TANK" then
-                unit.role_box.bgtex:SetColorTexture(c, 0, 0, 1)
+                unit.role_box.bg:SetColorTexture(c, 0, 0, 1)
             elseif role == "HEALER" then
-                unit.role_box.bgtex:SetColorTexture(0, c, 0, 1)
+                unit.role_box.bg:SetColorTexture(0, c, 0, 1)
             else
-                unit.role_box.bgtex:SetColorTexture(0, 0, c, 1)
+                unit.role_box.bg:SetColorTexture(0, 0, c, 1)
             end
 
             if UnitIsUnit(unit.id, "player") then

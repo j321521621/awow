@@ -8,6 +8,7 @@
 ## interface/EchoAuraDemo.lua
 
 interface/component/Base.lua
+interface/component/Player.lua
 interface/component/Raid.lua
 interface/Common.lua
 interface/R_Mist.lua

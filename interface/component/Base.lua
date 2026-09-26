@@ -1,15 +1,49 @@
 local addonName, NS = ...
 
-local function create_box(frame, left, top, width, height) 
-    local box = CreateFrame("Frame", "RangeSquareFrame", frame)
-    box:SetSize(width, height)
-    box:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
 
-    box.bgtex = box:CreateTexture(nil, "BACKGROUND")
-    box.bgtex:SetAllPoints()
-    box.bgtex:SetColorTexture(1, 1, 1, 1) 
+local function create_frame(parent, left, top, width, height)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetSize(width, height)
+    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+
+    local bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(frame)
+    bg:SetColorTexture(0, 0, 0, 1)
+
+    return frame
+end
+
+
+local function create_box(parent, left, top, width, height) 
+    local box = CreateFrame("Frame", nil, parent)
+    box:SetSize(width, height)
+    box:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+
+    box.bg = box:CreateTexture(nil, "BACKGROUND")
+    box.bg:SetAllPoints()
+    box.bg:SetColorTexture(1, 1, 1, 1) 
 
     return box
+end
+
+local function create_bar(parent, left, top, width, height)
+
+    local bar = CreateFrame("StatusBar", nil, parent)
+    bar:SetSize(width, height)
+    bar:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+    bar:SetMinMaxValues(0, 1)
+
+    local texture = bar:CreateTexture()
+    texture:SetAllPoints()
+    texture:SetColorTexture(0, 0, 0.5, 1)
+    bar:SetStatusBarTexture(texture)
+
+    local bg = bar:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.5, 0, 0, 1)
+
+    return bar
+
 end
 
 
@@ -26,12 +60,12 @@ local function styleAuraButton(button)
     fill:SetColorTexture(1, 0, 0, 1)
 end
 
-local function create_hot(frame, left, top, width, height, unit, spellID)
-    print(frame, left, top, width, height, unit, spellID)
+local function create_hot(parent, left, top, width, height, unit, spellID)
+    print(parent, left, top, width, height, unit, spellID)
 
-    local cell = CreateFrame("Frame", nil, frame)
+    local cell = CreateFrame("Frame", nil, parent)
     cell:SetSize(width, height)
-    cell:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
+    cell:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
 
     local blue = cell:CreateTexture(nil, "BACKGROUND")
     blue:SetAllPoints(cell)
@@ -54,26 +88,8 @@ local function create_hot(frame, left, top, width, height, unit, spellID)
     return cell
 end
 
-local function create_bar(frame, left, top, width, height)
 
-    local bar = CreateFrame("StatusBar", nil, frame)
-    bar:SetSize(width, height)
-    bar:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
-    bar:SetMinMaxValues(0, 1)
-
-    local texture = bar:CreateTexture()
-    texture:SetAllPoints()
-    texture:SetColorTexture(0, 0, 0.5, 1)
-    bar:SetStatusBarTexture(texture)
-
-    local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.5, 0, 0, 1)
-
-    return bar
-
-end
-
+NS.create_frame = create_frame
 NS.create_box = create_box
-NS.create_hot = create_hot
 NS.create_bar = create_bar
+NS.create_hot = create_hot
