@@ -7,7 +7,7 @@
 
 interface/component/Base.lua
 interface/component/Raid.lua
-## interface/R_Mist.lua
 interface/Common.lua
 interface/EchoAuraDemo.lua
+interface/R_Mist.lua
 

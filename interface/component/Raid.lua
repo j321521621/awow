@@ -68,18 +68,6 @@ function Raid:Update()
             unit.hp_bar:SetMinMaxValues(0, maxhp)
             unit.hp_bar:SetValue(hp)
 
-            local buff = C_UnitAuras.GetUnitAuras(unit.id, "HELPFUL", 100)
-            if buff then
-                for _, aura in ipairs(buff) do
-                    if not issecretvalue(aura.name) then
-                        if unit.hot_box[aura.spellId] then
-                            local t = aura.expirationTime - GetTime()
-                            print(unit.id, UnitName(unit.id), aura.spellId, t)
-                            unit.hot_box[aura.spellId].bgtex:SetColorTexture(t/10, 0, 0, 1)
-                        end
-                    end
-                end
-            end
 
         else
             unit.role_box:Hide()
