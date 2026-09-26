@@ -21,7 +21,7 @@ local function create_box(parent, left, top, width, height)
 
     box.bg = box:CreateTexture(nil, "BACKGROUND")
     box.bg:SetAllPoints()
-    box.bg:SetColorTexture(1, 1, 1, 1) 
+    box.bg:SetColorTexture(0, 0, 1, 1) 
 
     return box
 end
@@ -47,45 +47,29 @@ local function create_bar(parent, left, top, width, height)
 end
 
 
-local function styleAuraButton(button)
-    if button.SetMouseClickEnabled then button:SetMouseClickEnabled(false) end
-    if button.SetMouseMotionEnabled then button:SetMouseMotionEnabled(false) end
-
-    local fill = button.echoAuraDemoFill
-    if not fill then
-        fill = button:CreateTexture(nil, "OVERLAY")
-        button.echoAuraDemoFill = fill
-    end
-    fill:SetAllPoints(button)
-    fill:SetColorTexture(1, 0, 0, 1)
-end
 
 local function create_hot(parent, left, top, width, height, unit, spellID)
-    print(parent, left, top, width, height, unit, spellID)
+    local frame = create_box(parent, left, top, width, height)
 
-    local cell = CreateFrame("Frame", nil, parent)
-    cell:SetSize(width, height)
-    cell:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+    container = CreateFrame("AuraContainer", nil, frame, "CustomAuraContainerTemplate")
 
-    local blue = cell:CreateTexture(nil, "BACKGROUND")
-    blue:SetAllPoints(cell)
-    blue:SetColorTexture(0, 0, 1, 1)
-
-    container = CreateFrame("AuraContainer", nil, cell, "CustomAuraContainerTemplate")
-
-    container:SetAllPoints(cell)
+    container:SetAllPoints(frame)
     container:SetUnit(unit)
     container:SetMouseClickEnabled(false)
     container:SetMouseMotionEnabled(false)
 
-    button = container.AddAuraSlot(container, "echo", "HELPFUL", {
+    button = container:AddAuraSlot("default", "HELPFUL", {
         candidateFilters = { includeSpellIDs = { [spellID] = true } },
-        initializeFrame = styleAuraButton,
+        initializeFrame = function(button)
+            button.echoAuraDemoFill = button:CreateTexture(nil, "OVERLAY")
+            button.echoAuraDemoFill:SetAllPoints(button)
+            button.echoAuraDemoFill:SetColorTexture(1, 0, 0, 1)
+        end,
     })
 
-    button:SetAllPoints(cell)
+    button:SetAllPoints(container)
 
-    return cell
+    return frame
 end
 
 
