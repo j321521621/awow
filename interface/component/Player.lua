@@ -9,14 +9,21 @@ function Player:New(parent, left, top, spellids)
 
     self.frame = NS.create_frame(parent, left, top, 80, 40)
 
-    self.channel = NS.create_bar(self.frame, 0, 0, 40, 5)
-    self.gcd = NS.create_bar(self.frame, 0, -8, 40, 5)
+    self.mana =     NS.create_bar(self.frame, 0, 0, 40, 5)
+    self.essence =  NS.create_bar(self.frame, 0, -8, 40, 5)
+    self.channel =  NS.create_bar(self.frame, 0, -16, 40, 5)
+    self.gcd =      NS.create_bar(self.frame, 0, -24, 40, 5)
 
     return self
-end
+end 
 
 function Player:Update()
-    self.gcd:SetTimerDuration(C_Spell.GetSpellCooldownDuration(61304, false))
+
+    self.mana:SetMinMaxValues(0,  UnitPowerMax("player", Enum.PowerType.Mana))
+    self.mana:SetValue(UnitPower("player", Enum.PowerType.Mana))
+
+    self.essence:SetMinMaxValues(0, UnitPowerMax("player", Enum.PowerType.Essence))
+    self.essence:SetValue(UnitPower("player", Enum.PowerType.Essence))
 
     local name, text, texture, startTime, endTime, isTradeSkill, notInterruptible, spellID = UnitChannelInfo("player")
     if spellID then
@@ -27,6 +34,7 @@ function Player:Update()
         self.channel:Hide()
     end
 
+    self.gcd:SetTimerDuration(C_Spell.GetSpellCooldownDuration(61304, false))
 
 end
 
