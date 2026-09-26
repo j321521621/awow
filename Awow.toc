@@ -5,9 +5,11 @@
 ## Author: jiangziqian
 ## SavedVariables: HeroMatrixDB
 
+## interface/EchoAuraDemo.lua
+
 interface/component/Base.lua
 interface/component/Raid.lua
 interface/Common.lua
-interface/EchoAuraDemo.lua
 interface/R_Mist.lua
+
 

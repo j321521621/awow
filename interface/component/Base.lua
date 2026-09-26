@@ -27,8 +27,9 @@ local function styleAuraButton(button)
 end
 
 local function create_hot(frame, left, top, width, height, unit, spellID)
+    print(frame, left, top, width, height, unit, spellID)
 
-    local cell = CreateFrame("Frame", nil, row)
+    local cell = CreateFrame("Frame", nil, frame)
     cell:SetSize(width, height)
     cell:SetPoint("TOPLEFT", frame, "TOPLEFT", left, top)
 
@@ -49,6 +50,8 @@ local function create_hot(frame, left, top, width, height, unit, spellID)
     })
 
     button:SetAllPoints(cell)
+
+    return cell
 end
 
 local function create_bar(frame, left, top, width, height)
@@ -70,5 +73,7 @@ local function create_bar(frame, left, top, width, height)
     return bar
 
 end
+
 NS.create_box = create_box
+NS.create_hot = create_hot
 NS.create_bar = create_bar
