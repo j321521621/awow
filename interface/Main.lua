@@ -15,7 +15,7 @@ background:SetColorTexture(0, 0, 0, 1)
 
 
 local player = NS.Player:New(frame, 0, 0)
-local raid = NS.Raid:New(frame, 80, 0, {364343})
+local raid = NS.Raid:New(frame, 80, 0, {364343, 366155, 367364})
 
 C_Timer.NewTicker(0.05, function(self, elapsed)
     player:Update()

@@ -16,16 +16,16 @@ function Player:New(parent, left, top, spellids)
     self.essence =  NS.create_bar(self.frame, 0, -32, 36, 5)
 
     self.cd = {
-        {spellid = 373861, bar = NS.create_bar(self.frame, 40, -0, 36, 5)},
-        {spellid = 360995, bar = NS.create_bar(self.frame, 40, -8, 36, 5)},
-        {spellid = 357208, bar = NS.create_bar(self.frame, 40, -16, 36, 5)},
-        {spellid = 366155, bar = NS.create_bar(self.frame, 40, -24, 36, 5)},
+        {spellid = 373861, bar = NS.create_bar(self.frame, 40, -0, 76, 5)},
+        {spellid = 360995, bar = NS.create_bar(self.frame, 40, -8, 76, 5)},
+        {spellid = 357208, bar = NS.create_bar(self.frame, 40, -16, 76, 5)},
+        {spellid = 366155, bar = NS.create_bar(self.frame, 40, -24, 76, 5)},
     }
 
     self.hot = {
-        NS.create_hot(self.frame, 80, 0, 13, 13, "player", 369299),
-        NS.create_hot(self.frame, 80, -16, 13, 13, "player", 1242759),
-        NS.create_hot(self.frame, 100, 0, 13, 13, "player", 1256579),
+        NS.create_hot(self.frame, 120, 0, 13, 13, "player", 369299),
+        NS.create_hot(self.frame, 120, -16, 13, 13, "player", 1242759),
+        NS.create_hot(self.frame, 140, 0, 13, 13, "player", 1256579),
     }
 
 

@@ -14,9 +14,81 @@ pyautogui.MINIMUM_SLEEP = 0
 from wow import wow
 from log import log
 
+HK = {
+    'raid1' : 'f7',
+    'raid2' : 'f8',
+    'raid3' : 'f9',
+    'raid4' : 'f10',
+    'raid5' : 'f11',
+    'raid6' : 'f12',
+    'raid7' : '7',
+    'raid8' : '8',
+    'raid9' : '9',
+    'raid10' : '10',
+    'raid11' : '11',
+    'raid12' : '12',
+
+    'raid13' : 'num1',
+    'raid14' : 'num2',
+    'raid15' : 'num3',
+    'raid16' : 'num4',
+    'raid17' : 'num5',
+    'raid18' : 'num6',
+    'raid19' : 'num7',
+    'raid20' : 'num8',
+    'raid21' : 'num9',
+    'raid22' : 'num0',
+    'raid23' : 'add',
+    'raid24' : 'subtract',
+
+    'nz' : 'home',
+    'yg' : 'end',
+    'jt' : 'pageup',
+    'hx' : 'pagedown',
+    'fc' : '[',
+    'hp' : ']',
+    'ly' : ';',
+
+}
 
 
+def on_1():
+    if wow.hx_count and wow.cast_nz and wow.target_nz:
+        pyautogui.press(HK[wow.target_nz])
+        pyautogui.press(HK['nz'])
+    elif wow.buff_bf == 2:
+        pyautogui.press(HK['fc'])
+    elif wow.cast_yg:
+        pyautogui.press(HK['yg'])
+    elif wow.buff_bf == 1:
+        pyautogui.press(HK['fc'])
+    elif wow.cast_nz and wow.target_nz:
+        pyautogui.press(HK[wow.target_nz])
+        pyautogui.press(HK['nz'])
+    else:
+        pyautogui.press(HK['ly'])
 
+def on_2():
+    pass
+
+def on_3():
+    if wow.cast_jt:
+        pyautogui.press(HK['jt'])
+    elif wow.buff_hx == 2 and wow.cast_hx and wow.target_hx:
+        pyautogui.press(HK[wow.target_hx])
+        pyautogui.press(HK['hx'])
+    elif wow.buff_bf > 0:
+        pyautogui.press(HK['fc'])
+    elif wow.cast_hx and wow.target_hx:
+        pyautogui.press(HK[wow.target_hx])
+        pyautogui.press(HK['hx'])
+    elif wow.cast_hp:
+        pyautogui.press(HK['hp'])
+    else:
+        pyautogui.press(HK['ly'])
+
+def on_4():
+    pass
 
 class Main:
     def __init__(self):
@@ -39,7 +111,7 @@ class Main:
     def on_key(self, event):
         if not self.process(event):
             return
-        if event.scan_code == 88 and event.event_type == 'down': #F12
+        if False and event.scan_code == 88 and event.event_type == 'down': #F12
             if self.enable:
                 self.enable = False
                 print('PAUSE……')
@@ -53,48 +125,14 @@ class Main:
         with self.lock:
             #print(f"{wow.now:0.2f} {event.scan_code} {event.event_type}")
             if event.scan_code == 2 and event.event_type == 'down': #1
-                self.on_1()
+                on_1()
             elif event.scan_code == 3 and event.event_type == 'down': #2
-                self.on_2()
+                on_2()
             elif event.scan_code == 4 and event.event_type == 'down': #3
-                self.on_3()
+                on_3()
+            elif event.scan_code == 5 and event.event_type == 'down': #4
+                on_4()
 
-    def on_1(self):
-        gcd = wow.gcd
-        cd1 = wow.cd1
-        cd2 = wow.cd2
-
-        if cd1 - gcd < 0.5:
-            key = 'num7'
-        elif cd2 - gcd <0.5:
-            key = 'num8'
-        else:
-            key = 'num9'
-        
-        log.write_data([wow.now, 'attack', gcd, cd1, cd2, key])
-        pyautogui.press(key)
-
-    def on_2(self):
-        if wow.buff1:
-            key = 'add'
-        elif wow.ch is None or wow.ch > 0.95:
-            key = 'num0'
-        else:
-            if wow.danger is None:
-                return
-            key = 'add'
-
-        if wow.danger is None:
-            player = f'num1'
-        else:
-            player = f'num{wow.danger+1}'
-
-        log.write_data([wow.now, 'heal', player, key])
-        pyautogui.press(player)
-        pyautogui.press(key)
-
-    def on_3(self):
-        pyautogui.press('num6')
             
     def loop(self):
         while True:
@@ -117,7 +155,8 @@ class Main:
             time.sleep(0.2)
 
     def start(self):
-        threading.Thread(target=self.loop, daemon=True).start()
+        pass
+        #threading.Thread(target=self.loop, daemon=True).start()
 
 main = Main()
 

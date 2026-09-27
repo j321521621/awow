@@ -25,7 +25,7 @@ function Raid:New(parent, left, top, hotids)
 
         for j, hotid in ipairs(hotids) do
             self.unit[i].hot_box[j] =
-            NS.create_hot(self.frame, baseLeft + 56 + (j - 1) * 5, baseTop, 5, 5, self.unit[i].id, hotid)
+            NS.create_hot(self.frame, baseLeft + 56 + (j - 1) * 8, baseTop, 5, 5, self.unit[i].id, hotid)
         end
     end
 
@@ -42,7 +42,9 @@ function Raid:Update()
                 hot_box:Show()
             end
 
-            local c = select(3, UnitClass(unit.id))/20
+            
+            -- local c = select(3, UnitClass(unit.id))/20
+            local c = 1
             local role = UnitGroupRolesAssigned(unit.id)
             if role == "TANK" then
                 unit.role_box.awow.background:SetColorTexture(c, 0, 0, 1)
