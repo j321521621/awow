@@ -6,8 +6,6 @@ from datetime import datetime
 import threading
 import traceback
 
-
-import cv2
 import keyboard
 import pyautogui
 pyautogui.PAUSE = 0  # 取消默认 0.1 秒间隔

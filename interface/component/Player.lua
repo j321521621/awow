@@ -19,11 +19,13 @@ function Player:New(parent, left, top, spellids)
         {spellid = 373861, bar = NS.create_bar(self.frame, 40, -0, 36, 5)},
         {spellid = 360995, bar = NS.create_bar(self.frame, 40, -8, 36, 5)},
         {spellid = 357208, bar = NS.create_bar(self.frame, 40, -16, 36, 5)},
+        {spellid = 366155, bar = NS.create_bar(self.frame, 40, -24, 36, 5)},
     }
 
     self.hot = {
         NS.create_hot(self.frame, 80, 0, 13, 13, "player", 369299),
         NS.create_hot(self.frame, 80, -16, 13, 13, "player", 1242759),
+        NS.create_hot(self.frame, 100, 0, 13, 13, "player", 1256579),
     }
 
 

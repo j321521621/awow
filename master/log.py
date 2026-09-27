@@ -14,16 +14,14 @@ class Log:
         self.clean_capture(0)
 
     def write_data(self, d):
-        return
         with open(self.dir_log, "ab") as f:
             pickle.dump(d, f)
 
     def write_img(self, img):
-        return
         cv2.imwrite(f"{self.dir_cap}/{datetime.now().timestamp():08.3f}.png", img)
         self.clean_capture()
         
-    def clean_capture(self, max_num = 100):
+    def clean_capture(self, max_num = 20):
         fs = [f for f in os.listdir(self.dir_cap)]
         fs.sort()
         while len(fs) > max_num:

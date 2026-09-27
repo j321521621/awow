@@ -31,7 +31,7 @@ def maxv(data):
     n = data.index(v)
     return n, v
 
-def det_bar(img, y, left, right):
+def det_bar(img, left, right, y):
     r = int(sum(img[y, left:right, 0] > 10))
     b = int(sum(img[y, left:right, 2] > 10))
     img[y, left:right] = [255, 255, 255, 255]
@@ -41,7 +41,7 @@ def det_bar(img, y, left, right):
     else:
         return None
 
-def det_box(img, top, bottom, left, right):
+def det_box(img, left, right, top, bottom):
     ret = list(np.mean(img[top: bottom, left:right, :], axis=(0, 1)))[:3]
     img[top: bottom, left:right] = [255, 255, 255, 255]
     return ret
@@ -49,67 +49,25 @@ def det_box(img, top, bottom, left, right):
 
 def capture():
     with mss.mss() as sct:
-        img = np.array(sct.grab({'left': 0, 'top': 0, 'width': 1000, 'height': 70}))
+        img = np.array(sct.grab({'left': 1920, 'top': 0, 'width': 1000, 'height': 70}))
 
-    hp = [
-        det_bar(img, 5, 25, 149),
-        det_bar(img, 18, 25, 149),
-        det_bar(img, 30, 25, 149),
-        det_bar(img, 43, 25, 149),
-        det_bar(img, 56, 25, 149),
-    ]
+    gcd     = det_bar(img, 0, 45, 2),
+    cast    = det_bar(img, 0, 45, 12),
+    channel = det_bar(img, 0, 45, 22),
+    mana    = det_bar(img, 0, 45, 32),
+    essence = det_bar(img, 0, 45, 42),
 
-    ab = [
-        det_bar(img, 5, 152, 213),
-        det_bar(img, 18, 152, 213),
-        det_bar(img, 30, 152, 213),
-        det_bar(img, 43, 152, 213),
-        det_bar(img, 56, 152, 213),
-    ]
+    cd_jiti     = det_bar(img, 50, 95, 2),
+    cd_yong     = det_bar(img, 50, 95, 12),
+    cd_hongpen  = det_bar(img, 50, 95, 22),
+    cd_nizhuan  = det_bar(img, 50, 95, 32),
 
-    hab = [
-        det_bar(img, 5, 215, 276),
-        det_bar(img, 18, 215, 276),
-        det_bar(img, 30, 215, 276),
-        det_bar(img, 43, 215, 276),
-        det_bar(img, 56, 215, 276),
-    ]
+    buff_bengfa = det_box(img, 105, 110, 5, 10)
+    buff_echo   = det_box(img, 105, 110, 25, 30)
+    buff_lv     = det_box(img, 130, 135, 5, 10)
 
-    job = [
-        np.argmax(det_box(img, 4, 7, 4, 7)),
-        np.argmax(det_box(img, 17, 20, 4, 7)),
-        np.argmax(det_box(img, 29, 32, 4, 7)),
-        np.argmax(det_box(img, 42, 45, 4, 7)),
-        np.argmax(det_box(img, 55, 58, 4, 7)),
-    ]
-
-    dis = [
-        sum(det_box(img, 4, 7, 17, 20)) > 750,
-        sum(det_box(img, 17, 20, 17, 20)) > 750,
-        sum(det_box(img, 29, 32, 17, 20)) > 750,
-        sum(det_box(img, 42, 45, 17, 20)) > 750,
-        sum(det_box(img, 55, 58, 17, 20)) > 750,
-    ]
-
-    ch = det_bar(img, 5, 380, 504)
-    gcd = det_bar(img, 5, 506, 630)
-    cd1 = det_bar(img, 18, 506, 630)
-    cd2 = det_bar(img, 30, 506, 630)
-
-    buff1 = sum(det_box(img, 14, 16, 640, 642)) > 10
 
     return {
-        "job" : job,
-        "dis" : dis,
-        "hp": hp,
-        "ab": ab,
-        "hab": hab,
-
-        "ch": ch,
-        "buff1" : buff1,
-        "gcd": gcd,
-        "cd1": cd1,
-        "cd2": cd2,
     }, img
     
 
