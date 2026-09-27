@@ -111,7 +111,7 @@ class Main:
     def on_key(self, event):
         if not self.process(event):
             return
-        if False and event.scan_code == 88 and event.event_type == 'down': #F12
+        if event.scan_code == 69 and event.event_type == 'down': #F12
             if self.enable:
                 self.enable = False
                 print('PAUSE……')
