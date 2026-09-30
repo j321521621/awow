@@ -6,6 +6,7 @@ from datetime import datetime
 import numpy as np
 import mss
 import ctypes
+import math
 ctypes.windll.winmm.timeBeginPeriod(1)
 try:
     ctypes.windll.user32.SetProcessDpiAwarenessContext(-4)  # PerMonitorV2
@@ -45,33 +46,33 @@ def capture():
         img = np.array(sct.grab({'left': 1920, 'top': 0, 'width': 1000, 'height': 70}))
 
     ret = {
-        'gcd'    : det_bar(img, 0, 45, 2),
-        'cast'    : det_bar(img, 0, 45, 12),
-        'channel' : det_bar(img, 0, 45, 22),
-        'mana'    : det_bar(img, 0, 45, 32),
-        'essence' : det_bar(img, 0, 45, 42),
+        'gcd'       : det_bar(img, 0, 45, 2),
+        'cast'      : det_bar(img, 0, 45, 12),
+        'channel'   : det_bar(img, 0, 45, 22),
+        'mana'      : det_bar(img, 0, 45, 32),
+        'essence'   : det_bar(img, 0, 45, 42),
 
         'cd_jt'     : det_bar(img, 50, 145, 2),
         'cd_yg'     : det_bar(img, 50, 145, 12),
-        'cd_hp'  : det_bar(img, 50, 145, 22),
-        'cd_nz'  : det_bar(img, 50, 145, 32),
+        'cd_hp'     : det_bar(img, 50, 145, 22),
+        'cd_nz'     : det_bar(img, 50, 145, 32),
 
-        'buff_bf' : get_aura_stack(det_box(img, 155, 160, 5, 10)),
-        'buff_hx' : get_aura_stack(det_box(img, 155, 160, 25, 30)),
-        'buff_lv' : det_box(img, 180, 185, 5, 10)[0] > 0,
+        'buff_bf'   : get_aura_stack(det_box(img, 155, 160, 5, 10)),
+        'buff_hx'   : get_aura_stack(det_box(img, 155, 160, 25, 30)),
+        'buff_lv'   : det_box(img, 180, 185, 5, 10)[0] > 0,
 
-        'player' : [],
+        'player'    : [],
     }
 
     for i in range(24):
         basex = 100 * (i // 5) + 200
         basey = 10 * (i % 5)
         p = {
-            'id' : 'raid'+str(i+1),
-            'hp' : det_bar(img, basex + 20, basex + 65, basey + 2),
+            'id'    : 'raid'+str(i+1),
+            'hp'    : det_bar(img, basex + 20, basex + 65, basey + 2),
             'range' : det_box(img, basex + 12, basex + 14, basey + 2, basey + 4)[0] > 200,
-            'hx' : det_box(img, basex + 72, basex + 74, basey + 2, basey + 4)[0] > 0,
-            'nz' : det_box(img, basex + 82, basex + 84, basey + 2, basey + 4)[0] > 0 or det_box(img, basex + 92, basex + 94, basey + 2, basey + 4)[0] > 0,
+            'hx'    : det_box(img, basex + 72, basex + 74, basey + 2, basey + 4)[0] > 0,
+            'nz'    : det_box(img, basex + 82, basex + 84, basey + 2, basey + 4)[0] > 0 or det_box(img, basex + 92, basex + 94, basey + 2, basey + 4)[0] > 0,
         }
         if p['hp'] is not None:
             ret['player'].append(p)
@@ -81,62 +82,39 @@ def capture():
 
 class Wow():
     def __init__(self):
-        self.data = []
+        pass
 
     def add_frame(self, d):
-        self.data.append(d)
-        self.now = d['now']
-        while self.data and self.data[0]['now'] <  self.now - 2:
-            self.data.pop(0)
+        self.gcd = self.guess_cd(d['gcd'], 1.5)
+        self.cd_jt = self.guess_cd(d['cd_jt'], 15)
+        self.cd_yg = self.guess_cd(d['cd_yg'], 18)
+        self.cd_hp = self.guess_cd(d['cd_hp'], 25)
+        self.cd_nz = self.guess_cd(d['cd_nz'], 9)
 
-        self.gcd = self.guess_cd('gcd', 1.5)
-        self.cd_jt = self.guess_cd('cd_jt', 15)
-        self.cd_yg = self.guess_cd('cd_yg', 18)
-        self.cd_hp = self.guess_cd('cd_hp', 25)
-        self.cd_nz = self.guess_cd('cd_nz', 9)
-
-        self.cast_jt = self.cd_jt - self.gcd < 0.5
-        self.cast_yg = self.cd_yg - self.gcd < 0.5
-        self.cast_hp = self.cd_hp - self.gcd < 0.5
-        self.cast_nz = self.cd_nz - self.gcd < 0.5 or d['buff_lv']
-        self.cast_hx = d['buff_bf'] or d['essence'] > 0.4
+        self.short_hp = sum((1 - p['hp']) for p in d['player'] if p['range'])
+        self.hx_count = sum([p['hx'] for p in d['player']])
+        self.target_hx = self.guess_hx_target(d['player'])
+        self.target_nz = self.guess_nz_target(d['player'])
 
         self.buff_hx = d['buff_hx']
         self.buff_bf = d['buff_bf']
         self.buff_lv = d['buff_lv']
 
-        self.hx_count = sum([p['hx'] for p in d['player']])
-        self.target_hx = self.guess_hx_target()
-        self.target_nz = self.guess_nz_target()
+        self.cast_jt = self.cd_jt - self.gcd < 0.5
+        self.cast_yg = self.cd_yg - self.gcd < 0.5
+        self.cast_hp = self.cd_hp - self.gcd < 0.5
+        self.cast_nz = (self.buff_lv or self.cd_nz - self.gcd < 0.5) and self.target_nz
+        self.cast_hx = (self.buff_bf or d['essence'] > 0.4) and self.target_hx
 
-    def guess_cd(self, k, default):
-        if self.data[-1][k] == 1:
+    def guess_cd(self, cd, default):
+        if cd == 0 or cd == 1:
             return 0
+        else:
+            return cd * default
 
-        for d in self.data[::-1]:
-            if d['now'] >  self.now - 0.2 and d[k] == 0:
-                return 0
-
-        ds = [self.data[-1]]
-        for d in self.data[-2::-1]:
-            if ds[-1][k] >= d[k] and d[k] > 0:
-                ds.append(d)
-            else:
-                break 
-
-        t0 = ds[-1]['now']
-        t1 = ds[0]['now']
-        d0 = ds[-1][k]
-        d1 = ds[0][k]
-
-        if d1 - d0 < 0.05:
-            return (1 - d1) * default
-
-        return (1 - d1) * (t1 - t0) / (d1 - d0)
-
-    def guess_hx_target(self):
+    def guess_hx_target(self, player):
         buffer = sorted(
-            self.data[-1]['player'], 
+            player,
             key = lambda p: (p['range'], not p['hx'], not p['nz'], p['hp'], p['id']),
             reverse=True
         )
@@ -145,9 +123,9 @@ class Wow():
         else:
             return None
         
-    def guess_nz_target(self):
+    def guess_nz_target(self, player):
         buffer = sorted(
-            self.data[-1]['player'], 
+            player,
             key = lambda p: (p['range'], not p['hx'], not p['nz'], p['hp'], p['id']),
             reverse=True
         )
