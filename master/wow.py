@@ -85,6 +85,8 @@ class Wow():
         pass
 
     def add_frame(self, d):
+        self.channel = d['channel']
+
         self.gcd = self.guess_cd(d['gcd'], 1.5)
         self.cd_jt = self.guess_cd(d['cd_jt'], 15)
         self.cd_yg = self.guess_cd(d['cd_yg'], 18)
@@ -104,13 +106,13 @@ class Wow():
         self.cast_yg = self.cd_yg - self.gcd < 0.5
         self.cast_hp = self.cd_hp - self.gcd < 0.5
         self.cast_nz = (self.buff_lv or self.cd_nz - self.gcd < 0.5) and self.target_nz
-        self.cast_hx = (self.buff_bf or d['essence'] > 0.4) and self.target_hx
+        self.cast_hx = (self.buff_bf or d['essence'] > 0.3) and self.target_hx
 
     def guess_cd(self, cd, default):
         if cd == 0 or cd == 1:
             return 0
         else:
-            return cd * default
+            return (1 - cd) * default
 
     def guess_hx_target(self, player):
         buffer = sorted(

@@ -52,10 +52,10 @@ HK = {
 }
 
 
-def on_1():
-    if wow.buff_lv and wow.hx_count == 0:
-        return
-    elif wow.hx_count and wow.cast_nz:
+def on_1():   
+    if wow.channel:
+        pass
+    elif wow.cast_nz and wow.hx_count:
         pyautogui.press(HK[wow.target_nz])
         pyautogui.press(HK['nz'])
     elif wow.buff_bf == 2:
@@ -66,7 +66,7 @@ def on_1():
         pyautogui.press(HK['fc'])
     elif wow.cast_yg and wow.buff_bf < 2:
         pyautogui.press(HK['yg'])
-    elif wow.cast_nz:
+    elif wow.cast_nz and not wow.buff_lv:
         pyautogui.press(HK[wow.target_nz])
         pyautogui.press(HK['nz'])
     else:
@@ -76,7 +76,9 @@ def on_2():
     pass
 
 def on_3():
-    if wow.cast_jt:
+    if wow.channel:
+        pass
+    elif wow.cast_jt:
         pyautogui.press(HK['jt'])
     elif wow.cast_hx and wow.buff_hx == 2:
         pyautogui.press(HK[wow.target_hx])
@@ -148,11 +150,13 @@ class Main:
                     if keyboard.is_pressed('alt'):
                         pass
                     elif keyboard.is_pressed(2):
-                        self.on_1()
+                        on_1()
                     elif keyboard.is_pressed(3):
-                        self.on_2()
+                        on_2()
                     elif keyboard.is_pressed(4):
-                        self.on_3()
+                        on_3()
+                    elif keyboard.is_pressed(5):
+                        on_4()
                 except Exception as e:
                     print(f"❌ Exception occurred")
                     traceback.print_exc()
@@ -160,7 +164,7 @@ class Main:
 
     def start(self):
         pass
-        #threading.Thread(target=self.loop, daemon=True).start()
+        threading.Thread(target=self.loop, daemon=True).start()
 
 main = Main()
 
