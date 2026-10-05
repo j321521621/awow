@@ -7,14 +7,17 @@ import pickle
 
 class Log:
     def __init__(self):
-        self.dir_log = os.path.join('log', datetime.now().strftime("%Y-%m-%d %H_%M_%S"))
+        self.dir_log ='log/data'
         self.dir_cap = 'log/capture'
+        if not os.path.exists(self.dir_log):
+            os.makedirs(self.dir_log)
         if not os.path.exists(self.dir_cap):
             os.makedirs(self.dir_cap)
+        self.file_log = os.path.join(self.dir_log, datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))
         self.clean_capture(0)
 
     def write_data(self, d):
-        with open(self.dir_log, "ab") as f:
+        with open(self.file_log, "ab") as f:
             pickle.dump(d, f)
 
     def write_img(self, img):

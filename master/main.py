@@ -24,9 +24,9 @@ HK = {
     'raid7' : '7',
     'raid8' : '8',
     'raid9' : '9',
-    'raid10' : '10',
-    'raid11' : '11',
-    'raid12' : '12',
+    'raid10' : '0',
+    'raid11' : '-',
+    'raid12' : '=',
 
     'raid13' : 'num1',
     'raid14' : 'num2',
@@ -41,6 +41,7 @@ HK = {
     'raid23' : 'add',
     'raid24' : 'subtract',
 
+    'lp' : 'delete',
     'nz' : 'home',
     'yg' : 'end',
     'jt' : 'pageup',
@@ -62,18 +63,16 @@ def on_1():
         pyautogui.press(HK['fc'])
     elif wow.buff_bf and wow.short_hp > 0.5:
         pyautogui.press(HK['fc'])
-    elif wow.buff_bf and wow.buff_hx < 2:
-        pyautogui.press(HK['fc'])
     elif wow.cast_yg and wow.buff_bf < 2:
         pyautogui.press(HK['yg'])
+    elif wow.buff_bf and wow.buff_hx < 2:
+        pyautogui.press(HK['fc'])
     elif wow.cast_nz and not wow.buff_lv:
         pyautogui.press(HK[wow.target_nz])
         pyautogui.press(HK['nz'])
-    else:
-        pyautogui.press(HK['ly'])
 
 def on_2():
-    pass
+        pyautogui.press(HK['lp'])
 
 def on_3():
     if wow.channel:
