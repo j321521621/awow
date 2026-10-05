@@ -59,17 +59,12 @@ def on_1():
     elif wow.cast_nz and wow.hx_count:
         pyautogui.press(HK[wow.target_nz])
         pyautogui.press(HK['nz'])
-    elif wow.buff_bf == 2:
+    elif wow.buff_bf and wow.short_hp >= 1.0:
         pyautogui.press(HK['fc'])
-    elif wow.buff_bf and wow.short_hp > 0.5:
+    elif wow.buff_bf == 2 and wow.buff_hx < 2:
         pyautogui.press(HK['fc'])
-    elif wow.cast_yg and wow.buff_bf < 2:
+    elif wow.buff_bf < 2 and wow.cast_yg:
         pyautogui.press(HK['yg'])
-    elif wow.buff_bf and wow.buff_hx < 2:
-        pyautogui.press(HK['fc'])
-    elif wow.cast_nz and not wow.buff_lv:
-        pyautogui.press(HK[wow.target_nz])
-        pyautogui.press(HK['nz'])
 
 def on_2():
         pyautogui.press(HK['lp'])
@@ -89,8 +84,8 @@ def on_3():
         pyautogui.press(HK['hx'])
     elif wow.cast_hp:
         pyautogui.press(HK['hp'])
-    else:
-        pyautogui.press(HK['ly'])
+    #else:
+    #    pyautogui.press(HK['ly'])
 
 def on_4():
     pass
