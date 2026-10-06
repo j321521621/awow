@@ -45,27 +45,39 @@ def capture():
     with mss.mss() as sct:
         img = np.array(sct.grab({'left': 1920, 'top': 0, 'width': 1000, 'height': 70}))
 
+    logo = [
+        det_box(img, 0, 45, 0,  5),
+        det_box(img, 0, 45, 10, 15),
+        det_box(img, 0, 45, 20, 25),
+        det_box(img, 0, 45, 30, 35),
+        det_box(img, 0, 45, 40, 45),
+    ]
+    if logo != [[0.0, 0.0, 255.0], [0.0, 255.0, 0.0], [255.0, 0.0, 0.0], [255.0, 0.0, 255.0], [0.0, 255.0, 255.0]]:
+        return {}, None
+
     ret = {
-        'gcd'       : det_bar(img, 0, 45, 2),
-        'cast'      : det_bar(img, 0, 45, 12),
-        'channel'   : det_bar(img, 0, 45, 22),
-        'mana'      : det_bar(img, 0, 45, 32),
-        'essence'   : det_bar(img, 0, 45, 42),
+        'hp'        : det_bar(img, 50, 95, 2),
+        'mp'        : det_bar(img, 50, 95, 12),
+        'essence'   : det_bar(img, 50, 95, 22),
+        'cast'      : det_bar(img, 50, 95, 32),
+        'channel'   : det_bar(img, 50, 95, 42),
 
-        'cd_jt'     : det_bar(img, 50, 145, 2),
-        'cd_yg'     : det_bar(img, 50, 145, 12),
-        'cd_hp'     : det_bar(img, 50, 145, 22),
-        'cd_nz'     : det_bar(img, 50, 145, 32),
+        'gcd'       : det_bar(img, 100, 195,  2),
+        'cd_jt'     : det_bar(img, 100, 195, 12),
+        'cd_yg'     : det_bar(img, 100, 195, 22),
+        'cd_hp'     : det_bar(img, 100, 195, 32),
+        'cd_nz'     : det_bar(img, 100, 195, 42),
 
-        'buff_bf'   : get_aura_stack(det_box(img, 155, 160, 5, 10)),
-        'buff_hx'   : get_aura_stack(det_box(img, 155, 160, 25, 30)),
-        'buff_lv'   : det_box(img, 180, 185, 5, 10)[0] > 0,
+        'move'      : det_box(img, 200, 210, 5, 10)[0] > 0,
+        'buff_bf'   : get_aura_stack(det_box(img, 200, 210, 25, 30)),
+        'buff_hx'   : get_aura_stack(det_box(img, 215, 225, 25, 30)),
+        'buff_lv'   : det_box(img, 230, 240, 25, 30)[0] > 0,
 
         'player'    : [],
     }
 
     for i in range(24):
-        basex = 100 * (i // 5) + 200
+        basex = 100 * (i // 5) + 250
         basey = 10 * (i % 5)
         p = {
             'id'    : 'raid'+str(i+1),
@@ -145,11 +157,12 @@ class Wow():
                 time.sleep(next_time - now)
             try:
                 d, img = capture()
-                d['tick'] = tick
-                d['now'] = now
-                log.write_img(img)
-                log.write_data(d)
-                self.add_frame(d)
+                if d:
+                    d['tick'] = tick
+                    d['now'] = now
+                    log.write_img(img)
+                    log.write_data(d)
+                    self.add_frame(d)
             except Exception as e:
                 print(f"❌ Exception occurred")
                 traceback.print_exc()

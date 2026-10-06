@@ -15,21 +15,22 @@ local function create_frame(parent, left, top, width, height, background)
 end
 
 local function create_bar(parent, left, top, width, height)
-    local bar = CreateFrame("StatusBar", nil, parent)
-    bar:SetSize(width, height)
-    bar:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
-    bar:SetMinMaxValues(0, 1)
+    local frame = CreateFrame("StatusBar", nil, parent)
+    frame:SetSize(width, height)
+    frame:SetPoint("TOPLEFT", parent, "TOPLEFT", left, top)
+    frame:SetMinMaxValues(0, 1)
+    frame.awow = frame.awow or {}
 
-    local texture = bar:CreateTexture()
-    texture:SetAllPoints()
-    texture:SetColorTexture(0, 0, 0.5, 1)
-    bar:SetStatusBarTexture(texture)
+    frame.awow.texture = frame:CreateTexture()
+    frame.awow.texture:SetAllPoints()
+    frame.awow.texture:SetColorTexture(0, 0, 1, 1)
+    frame:SetStatusBarTexture(frame.awow.texture)
 
-    local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0.5, 0, 0, 1)
+    frame.awow.background = frame:CreateTexture(nil, "BACKGROUND")
+    frame.awow.background:SetAllPoints()
+    frame.awow.background:SetColorTexture(1, 0, 0, 1)
 
-    return bar
+    return frame
 
 end
 

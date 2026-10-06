@@ -84,8 +84,6 @@ def on_3():
         pyautogui.press(HK['hx'])
     elif wow.cast_hp:
         pyautogui.press(HK['hp'])
-    #else:
-    #    pyautogui.press(HK['ly'])
 
 def on_4():
     pass

@@ -8,9 +8,10 @@
 
 interface/Common.lua
 
-interface/component/Base.lua
-interface/component/Player.lua
-interface/component/Raid.lua
+interface/Base.lua
+interface/Logo.lua
+interface/Player.lua
+interface/Raid.lua
 interface/Main.lua
 
 
