@@ -106,6 +106,7 @@ class Wow():
             return
         
         self.channel = d['channel']
+        self.move = d['move']
 
         self.gcd = self.guess_cd(d['gcd'], 1.5)
         self.cd_jt = self.guess_cd(d['cd_jt'], 15)

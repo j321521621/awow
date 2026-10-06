@@ -13,7 +13,7 @@ function Raid:New(parent, left, top, hotids)
         local row = (i - 1) % 5
         local col = math.floor((i - 1) / 5)
         local baseLeft = col * 80
-        local baseTop = row * 8
+        local baseTop = -row * 8
 
         self.unit[i] = {
             id = "raid" .. i,
