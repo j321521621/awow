@@ -53,9 +53,13 @@ def capture():
         det_box(img, 0, 45, 40, 45),
     ]
     if logo != [[0.0, 0.0, 255.0], [0.0, 255.0, 0.0], [255.0, 0.0, 0.0], [255.0, 0.0, 255.0], [0.0, 255.0, 255.0]]:
-        return {}, None
+        return {
+            'available': False
+            }, img
 
     ret = {
+        'available': True,
+
         'hp'        : det_bar(img, 50, 95, 2),
         'mp'        : det_bar(img, 50, 95, 12),
         'essence'   : det_bar(img, 50, 95, 22),
@@ -97,6 +101,10 @@ class Wow():
         pass
 
     def add_frame(self, d):
+        self.available = d['available']
+        if self.available == False:
+            return
+        
         self.channel = d['channel']
 
         self.gcd = self.guess_cd(d['gcd'], 1.5)
@@ -157,12 +165,11 @@ class Wow():
                 time.sleep(next_time - now)
             try:
                 d, img = capture()
-                if d:
-                    d['tick'] = tick
-                    d['now'] = now
-                    log.write_img(img)
-                    log.write_data(d)
-                    self.add_frame(d)
+                d['tick'] = tick
+                d['now'] = now
+                log.write_img(img)
+                log.write_data(d)
+                self.add_frame(d)
             except Exception as e:
                 print(f"❌ Exception occurred")
                 traceback.print_exc()

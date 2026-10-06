@@ -54,7 +54,9 @@ HK = {
 
 
 def on_1():   
-    if wow.channel:
+    if wow.available == False:
+        pass
+    elif wow.channel:
         pass
     elif wow.cast_nz and wow.hx_count:
         pyautogui.press(HK[wow.target_nz])
@@ -67,10 +69,15 @@ def on_1():
         pyautogui.press(HK['yg'])
 
 def on_2():
+    if wow.available == False:
+        pass
+    else:
         pyautogui.press(HK['lp'])
 
 def on_3():
-    if wow.channel:
+    if wow.available == False:
+        pass
+    elif wow.channel:
         pass
     elif wow.cast_jt:
         pyautogui.press(HK['jt'])
